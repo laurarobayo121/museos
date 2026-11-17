@@ -13,6 +13,10 @@ Abre `index.html` en el navegador (Chrome, Edge o Safari, con conexión a intern
 - Arrastra para mirar.
 - Haz clic en una vitrina, panel o pantalla para abrir su información.
 
+## Documentos
+
+- `docs/Guiones_Ecos_Navidenos.pdf`: guiones de la exposición.
+
 ## Créditos de imágenes
 
 Las fotografías de la pared "La pieza de tu familia" son imágenes de referencia tomadas de Pinterest (autores: Por completar), usadas con fines académicos.
