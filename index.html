@@ -1868,7 +1868,7 @@ function abrirAyuda(){
   abrirDialogo({eyebrow:"Ayuda y créditos", titulo:"Cómo recorrer la exposición", html:`<div class="prose">
     <h3>Moverse</h3><ul><li>Computador: <b>W A S D</b> o flechas para caminar, <b>Q / E</b> para girar, <b>Shift</b> para ir más rápido. Arrastra con el mouse para mirar. La rueda avanza o retrocede.</li><li>Celular o tableta: arrastra para mirar y toca el piso para caminar hasta ese punto.</li><li>El plano de la esquina muestra dónde estás; tócalo para ir a cualquier punto.</li></ul>
     <h3>Ver las piezas</h3><ul><li>Toca una vitrina, una cédula, un panel o una pantalla para abrir su información.</li><li>En el visor 3D arrastra para girar la pieza y usa la rueda o pellizca para acercarte. Con el teclado: flechas para girar y + / − para acercar.</li><li>Elige el nivel de lectura (básico, general o especializado) para ver más o menos información.</li></ul>
-    <h3>Sobre esta exposición</h3><p>Exposición virtual Ecos Navideños. Museos y Tecnologías, Ingeniería en Multimedia. Guiones museológico, curatorial, museográfico, educativo y de mediación: Laura Robayo y Cristian Peña.</p>
+    <h3>Sobre esta exposición</h3><p>Exposición virtual Ecos Navideños. Museos y Tecnologías, Ingeniería en Multimedia. Guiones museológico, curatorial, museográfico, educativo y de mediación: Laura Robayo y Cristian Peña.</p><p>Modelos 3D de las seis piezas: Cristian Peña, modelados en Blender a partir del registro fotográfico de la colección. Son reproducciones digitales con fines de estudio y no reemplazan a las piezas originales.</p><p>Música del Lugar E: aguinaldo instrumental con melodía original, sintetizado para esta exposición (tiple, bajo, maracas, pandereta y flauta).</p><p>Fotografías de la pared «La pieza de tu familia»: imágenes de referencia tomadas de Pinterest, con fines académicos. Autores: Por completar.</p>
     <p>Los datos de las piezas salen de las fichas técnicas del taller de reconocimiento y de los guiones. Lo que esas fuentes no indican aparece como <span class="pend">No indicado</span>, <span class="pend">Por completar</span> o <span class="pend">Por definir</span>.</p>
     <p>Los modelos 3D son aproximaciones hechas a partir del registro fotográfico y las fichas; no son escaneos. La fase de conservación propone fotogrametría o escaneo 3D para obtener copias virtuales fieles.</p>
     <p>El glosario y las consignas de observación de los lugares B y C son textos de apoyo para la mediación.</p></div>`});
@@ -1989,7 +1989,11 @@ const musica={ctx:null,master:null,on:true,sig:0,idx:0,
     this.seco=c.createGain(); this.seco.gain.value=.8; this.seco.connect(this.master); this.seco.connect(this.envio);
     const n=c.createBuffer(1,c.sampleRate*.5,c.sampleRate), d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this.ruido=n;
     this.t0=c.currentTime+.1; this.sig=this.t0; this.compas=0;
-    setInterval(()=>this.programar(),100);
+    // Si hay una grabación en musica/cancion.mp3, suena esa; si no, el aguinaldo sintetizado
+    const au=new Audio(); au.loop=true; au.preload="auto";
+    au.oncanplay=()=>{ if(this.grabacion) return; this.grabacion=au; c.createMediaElementSource(au).connect(this.master); au.play().catch(()=>{}); };
+    au.onerror=()=>{ if(!this.intervalo) this.intervalo=setInterval(()=>this.programar(),100); };
+    au.src="musica/cancion.mp3";
   },
   nota(t,f,dur,tipo,vol,corte){ const c=this.ctx, o=c.createOscillator(), g=c.createGain(), fl=c.createBiquadFilter();
     o.type=tipo; o.frequency.value=f; fl.type="lowpass"; fl.frequency.setValueAtTime(corte,t); fl.frequency.exponentialRampToValueAtTime(Math.max(300,corte*.25),t+dur);
