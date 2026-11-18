@@ -9,7 +9,7 @@ Guiones: Laura Robayo · Cristian Peña
 
 Abre `index.html` con doble clic en cualquier navegador (Chrome, Edge, Safari o Firefox). Necesita internet para cargar Three.js y las fuentes. Descarga la carpeta completa: los modelos 3D están en `modelos/`.
 
-Con doble clic los modelos se leen de `modelos/modelos.js` (copia en base64). Si cambias un `.glb`, vuelve a generarla con `python3 herramientas/empaquetar_modelos.py`.
+Con doble clic los modelos se leen de `modelos/embebidos/` (copias en base64 sin Draco). Si cambias un `.glb`, vuelve a generarlas con `node herramientas/empaquetar_modelos.mjs` (instrucciones dentro del archivo).
 
 - Camina con W A S D o las flechas, o haz clic en el piso.
 - Arrastra para mirar.

@@ -844,20 +844,21 @@ const cargadorGLB=new GLTFLoader();
 { const draco=new DRACOLoader(); draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/"); cargadorGLB.setDRACOLoader(draco); }
 const cacheGLB={};
 /* Al abrir index.html con doble clic (file://) el navegador no deja leer los .glb;
-   entonces se carga modelos/modelos.js, que trae los mismos modelos en base64. */
-let promesaEmbebidos=null;
-function cargarEmbebidos(){
-  if(!promesaEmbebidos) promesaEmbebidos=new Promise(res=>{ if(window.MODELOS_EMBEBIDOS) return res(window.MODELOS_EMBEBIDOS);
-    const sc=document.createElement("script"); sc.src="modelos/modelos.js"; sc.onload=()=>res(window.MODELOS_EMBEBIDOS||null); sc.onerror=()=>res(null); document.head.appendChild(sc); });
-  return promesaEmbebidos;
+   entonces se carga modelos/embebidos/<pieza>.js, que trae el mismo modelo en base64
+   y sin compresión Draco (no necesita descargar el decodificador). */
+const promesasEmbebidas={};
+function cargarEmbebido(id){
+  if(!promesasEmbebidas[id]) promesasEmbebidas[id]=new Promise(res=>{ const E=window.MODELOS_EMBEBIDOS; if(E&&E[id]) return res(E[id]);
+    const sc=document.createElement("script"); sc.src="modelos/embebidos/"+id+".js"; sc.onload=()=>res((window.MODELOS_EMBEBIDOS||{})[id]||null); sc.onerror=()=>res(null); document.head.appendChild(sc); });
+  return promesasEmbebidas[id];
 }
-async function desdeEmbebidos(id){ const E=await cargarEmbebidos();
-  if(!E || !E[id]) throw new Error("sin copia embebida de "+id);
-  const bin=Uint8Array.from(atob(E[id]),ch=>ch.charCodeAt(0)); return cargadorGLB.parseAsync(bin.buffer,""); }
+async function desdeEmbebidos(id){ const b64=await cargarEmbebido(id);
+  if(!b64) throw new Error("sin copia embebida de "+id);
+  const bin=Uint8Array.from(atob(b64),ch=>ch.charCodeAt(0)); return cargadorGLB.parseAsync(bin.buffer,""); }
 async function cargarGLB(id){
   if(location.protocol==="file:") return desdeEmbebidos(id);
   try{ return await cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS); }
-  catch(e){ return desdeEmbebidos(id); } // si el .glb no se puede leer, se usa la copia de modelos/modelos.js
+  catch(e){ return desdeEmbebidos(id); } // si el .glb no se puede leer, se usa la copia de modelos/embebidos/
 }
 function promesaGLB(id){
   if(!cacheGLB[id]) cacheGLB[id]=cargarGLB(id).then(gl=>{
