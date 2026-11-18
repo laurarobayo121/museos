@@ -202,6 +202,7 @@ label.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:6px}
     <button class="btn-hud" id="b-lugares" type="button">Ir a un lugar</button>
     <button class="btn-hud" id="b-nivel" type="button" title="Cambia la cantidad de información de las cédulas y paneles">Nivel: General</button>
     <button class="btn-hud" id="b-glosario" type="button">Glosario</button>
+    <button class="btn-hud" id="b-musica" type="button" aria-pressed="true" title="Villancico que suena en el Lugar E">Música: sí</button>
     <button class="btn-hud" id="b-ayuda" type="button">Ayuda y créditos</button>
   </div>
 </div>
@@ -842,8 +843,21 @@ const VERSION_MODELOS="2"; // súbelo al reemplazar un .glb para que los navegad
 const cargadorGLB=new GLTFLoader();
 { const draco=new DRACOLoader(); draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/"); cargadorGLB.setDRACOLoader(draco); }
 const cacheGLB={};
+/* Al abrir index.html con doble clic (file://) el navegador no deja leer los .glb;
+   entonces se carga modelos/modelos.js, que trae los mismos modelos en base64. */
+let promesaEmbebidos=null;
+function cargarEmbebidos(){
+  if(!promesaEmbebidos) promesaEmbebidos=new Promise(res=>{ if(window.MODELOS_EMBEBIDOS) return res(window.MODELOS_EMBEBIDOS);
+    const sc=document.createElement("script"); sc.src="modelos/modelos.js"; sc.onload=()=>res(window.MODELOS_EMBEBIDOS||null); sc.onerror=()=>res(null); document.head.appendChild(sc); });
+  return promesaEmbebidos;
+}
+async function cargarGLB(id){
+  if(location.protocol==="file:"){ const E=await cargarEmbebidos();
+    if(E && E[id]){ const bin=Uint8Array.from(atob(E[id]),ch=>ch.charCodeAt(0)); return cargadorGLB.parseAsync(bin.buffer,""); } }
+  return cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS);
+}
 function promesaGLB(id){
-  if(!cacheGLB[id]) cacheGLB[id]=cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS).then(gl=>{
+  if(!cacheGLB[id]) cacheGLB[id]=cargarGLB(id).then(gl=>{
     gl.scene.traverse(o=>{ if(o.isMesh){ const ms=Array.isArray(o.material)?o.material:[o.material];
       ms.forEach(m=>{ if("metalness" in m) m.metalness=Math.min(m.metalness,.35); if(MODELOS_GLB[id].brillo && m.color) m.color.multiplyScalar(MODELOS_GLB[id].brillo); if(/Portal/.test(m.name)){ m.normalMap=null; m.needsUpdate=true; } }); if(/Portal/.test(o.name)) o.geometry.computeVertexNormals(); } }); // la sala no tiene mapa de entorno: el metal puro se vería negro; el pesebre se aclara para la luz tenue de la sala
     return gl.scene; }).catch(e=>{ console.warn(`Modelo 3D "${id}" no disponible; se usa la figura de respaldo.`,e); return null; });
@@ -1506,6 +1520,7 @@ function cuadro(){
     for(const d of destellos){ const c=d.p.geometry.attributes.color; for(let i=0;i<d.fase.length;i++){ const k=.55+.45*Math.sin(tiempo*d.vel*2+d.fase[i])*(d.vel>2?.6+.4*Math.sin(tiempo*13+d.fase[i]*3):1); c.array[i*3]=d.base[i*3]*k; c.array[i*3+1]=d.base[i*3+1]*k; c.array[i*3+2]=d.base[i*3+2]*k; } c.needsUpdate=true; }
     for(const a of animados){ if(a.userData.led) a.visible=Math.sin(tiempo*2)>-.6; if(a.userData.pulsa){ const s=1+Math.sin(tiempo*2)*.06; a.scale.set(s,s,s);} }
     escena.traverse(o=>{ if(o.userData.titila && o.geometry){ const c=o.geometry.attributes.color; for(let i=0;i<c.count;i++){ const k=.6+.4*Math.sin(tiempo*3+i*1.7); c.array[i*3]=k; c.array[i*3+1]=.85*k; c.array[i*3+2]=.55*k; } c.needsUpdate=true; } });
+    musica.volumen(jugador.x,jugador.z);
     renderer.render(escena,camara);
     dibujarMini();
     const lg=lugarDe(jugador.x,jugador.z);
@@ -1922,6 +1937,61 @@ fijarNivel(estado.nivel);
 
 function semilla(s){ return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
 
+
+/* =====================================================================
+   MÚSICA DEL LUGAR E: aguinaldo instrumental (melodía original, sintetizada
+   con Web Audio: tiple, bajo, maracas y pandereta). Solo se escucha cerca
+   del pedestal "La pieza de tu familia" y se apaga al alejarse.
+   ===================================================================== */
+const musica={ctx:null,master:null,on:true,sig:0,idx:0,
+  BPM:116,
+  MEL:[[71,.5],[74,.5],[74,.5],[76,.5],[74,.5],[71,.5],[67,1],[69,.5],[72,.5],[72,.5],[74,.5],[72,.5],[69,.5],[66,1],
+       [69,.5],[72,.5],[74,.5],[72,.5],[71,.5],[69,.5],[71,.5],[72,.5],[74,.75],[71,.25],[69,.5],[71,.5],[67,2],
+       [72,.5],[76,.5],[76,.5],[79,.5],[76,.5],[72,.5],[72,1],[71,.5],[74,.5],[74,.5],[79,.5],[74,.5],[71,.5],[71,1],
+       [72,.5],[69,.5],[66,.5],[69,.5],[72,.5],[74,.5],[72,.5],[69,.5],[71,.5],[69,.5],[66,.5],[69,.5],[67,2]],
+  ACO:["G","G","D","D","D","D","G","G","C","C","G","G","D","D","G","G"],
+  VOZ:{G:[55,59,62,67,71],C:[55,60,64,67,72],D:[54,57,60,62,66]}, BAJO:{G:[43,50],C:[48,43],D:[38,45]},
+  hz:n=>440*Math.pow(2,(n-69)/12),
+  iniciar(){ if(this.ctx) { this.ctx.resume(); return; }
+    try{ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; this.ctx=new C(); }catch(e){ return; }
+    const c=this.ctx; this.master=c.createGain(); this.master.gain.value=0; this.master.connect(c.destination);
+    const n=c.createBuffer(1,c.sampleRate*.5,c.sampleRate), d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this.ruido=n;
+    this.t0=c.currentTime+.1; this.sig=this.t0; this.compas=0;
+    setInterval(()=>this.programar(),100);
+  },
+  nota(t,f,dur,tipo,vol,corte){ const c=this.ctx, o=c.createOscillator(), g=c.createGain(), fl=c.createBiquadFilter();
+    o.type=tipo; o.frequency.value=f; fl.type="lowpass"; fl.frequency.setValueAtTime(corte,t); fl.frequency.exponentialRampToValueAtTime(Math.max(300,corte*.25),t+dur);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+    o.connect(fl); fl.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+.05); },
+  flauta(t,f,dur){ const c=this.ctx, o=c.createOscillator(), v=c.createOscillator(), vg=c.createGain(), g=c.createGain();
+    o.type="triangle"; o.frequency.value=f*2; v.frequency.value=5.2; vg.gain.value=f*2*.006; v.connect(vg); vg.connect(o.frequency);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.11,t+.04); g.gain.setValueAtTime(.1,t+Math.max(.05,dur-.06)); g.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(g); g.connect(this.master); o.start(t); v.start(t); o.stop(t+dur+.02); v.stop(t+dur+.02); },
+  golpe(t,vol,frec,dur,q=1){ const c=this.ctx, s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+    s.buffer=this.ruido; f.type="bandpass"; f.frequency.value=frec; f.Q.value=q;
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0008,t+dur); s.connect(f); f.connect(g); g.connect(this.master); s.start(t,Math.random()*.3); s.stop(t+dur+.02); },
+  rasgueo(t,acorde,abajo,vol){ const v=this.VOZ[acorde], orden=abajo?v:[...v].reverse(); orden.forEach((n,i)=>this.nota(t+i*.012,this.hz(n),.32,"sawtooth",vol*(1-i*.08),2600)); },
+  programar(){ const c=this.ctx; if(!c) return; const neg=60/this.BPM;
+    while(this.sig<c.currentTime+.4){
+      const t=this.sig, k=this.compas%16, ac=this.ACO[k];
+      // tiple: abajo · arriba · abajo · arriba (aguinaldo)
+      this.rasgueo(t,ac,true,.05); this.rasgueo(t+neg*.5,ac,false,.035); this.rasgueo(t+neg,ac,true,.045); this.rasgueo(t+neg*1.75,ac,false,.035);
+      const b=this.BAJO[ac]; this.nota(t,this.hz(b[0]),neg*.9,"triangle",.16,900); this.nota(t+neg,this.hz(b[1]),neg*.9,"triangle",.13,900);
+      for(let i=0;i<4;i++) this.golpe(t+i*neg*.5,i%2?.07:.04,6500,.07,.8);   // maracas
+      this.golpe(t+neg,.06,9000,.18,2.5); this.golpe(t+neg*1.5,.03,9000,.1,2.5); // pandereta
+      // melodía de este compás
+      let acum=0; while(acum<2-1e-6){ const [m,dur]=this.MEL[this.idx]; this.flauta(t+acum*neg,this.hz(m),dur*neg*.95); acum+=dur; this.idx=(this.idx+1)%this.MEL.length; }
+      this.sig+=2*neg; this.compas++;
+    }
+  },
+  volumen(x,z){ if(!this.ctx||!this.master) return;
+    // distancia al área del Lugar E (fondo de la sala, alrededor del pedestal)
+    const dx=Math.max(-6-x,0,x-6), dz=Math.max(-8-z,0,z-(-4.4)), d=Math.hypot(dx,dz);
+    const objetivo=this.on? .55*Math.max(0,1-d/3.2) : 0;
+    this.master.gain.setTargetAtTime(objetivo,this.ctx.currentTime,.25); }
+};
+document.getElementById("b-musica").onclick=e=>{ musica.on=!musica.on; musica.iniciar(); e.currentTarget.textContent="Música: "+(musica.on?"sí":"no"); e.currentTarget.setAttribute("aria-pressed",String(musica.on)); };
+document.querySelectorAll("#portada [data-rec]").forEach(b=>b.addEventListener("click",()=>musica.iniciar()));
 /* =====================================================================
    ARRANQUE
    ===================================================================== */
@@ -1930,6 +2000,6 @@ function semilla(s){ return ()=>{ s=(s*16807)%2147483647; return (s-1)/214748364
   construirSala(); montaje(); construirAmbiente();
   ajustar(); requestAnimationFrame(cuadro);
   document.getElementById("cargando").textContent="La sala está lista.";
-  window.__ecos={abrirRelaciones,jugador,irA,abrirObjeto,abrirLugar,abrirActividad,abrirMapa,abrirComparar,abrirEtiqueta,iniciarRecorrido};
+  window.__ecos={musica,abrirRelaciones,jugador,irA,abrirObjeto,abrirLugar,abrirActividad,abrirMapa,abrirComparar,abrirEtiqueta,iniciarRecorrido};
 })();
 </script>
