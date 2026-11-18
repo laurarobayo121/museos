@@ -851,10 +851,13 @@ function cargarEmbebidos(){
     const sc=document.createElement("script"); sc.src="modelos/modelos.js"; sc.onload=()=>res(window.MODELOS_EMBEBIDOS||null); sc.onerror=()=>res(null); document.head.appendChild(sc); });
   return promesaEmbebidos;
 }
+async function desdeEmbebidos(id){ const E=await cargarEmbebidos();
+  if(!E || !E[id]) throw new Error("sin copia embebida de "+id);
+  const bin=Uint8Array.from(atob(E[id]),ch=>ch.charCodeAt(0)); return cargadorGLB.parseAsync(bin.buffer,""); }
 async function cargarGLB(id){
-  if(location.protocol==="file:"){ const E=await cargarEmbebidos();
-    if(E && E[id]){ const bin=Uint8Array.from(atob(E[id]),ch=>ch.charCodeAt(0)); return cargadorGLB.parseAsync(bin.buffer,""); } }
-  return cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS);
+  if(location.protocol==="file:") return desdeEmbebidos(id);
+  try{ return await cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS); }
+  catch(e){ return desdeEmbebidos(id); } // si el .glb no se puede leer, se usa la copia de modelos/modelos.js
 }
 function promesaGLB(id){
   if(!cacheGLB[id]) cacheGLB[id]=cargarGLB(id).then(gl=>{
