@@ -286,9 +286,9 @@ const LUGARES = {
      objetos:["virgen"]},
   D:{nombre:"Llegaron de Alemania", eje:"Decorativo-global", nivel:"General", color:"#2d6a4a",
      objetivo:"Mostrar la dimensión decorativa y global de la Navidad y comparar tres piezas de una misma serie.",
-     temas:"Wilhelm Füchtner y Seiffen, Erzgebirge (hacia 1870–1872); cascanueces rey, soldado y blanco; madera policromada; serie y variación.",
+     temas:"Wilhelm Füchtner y Seiffen, Erzgebirge (hacia 1870–1872); cascanueces rey, soldado y soldado blanco; madera policromada; serie y variación.",
      donde:"Aquí la Navidad deja lo religioso y se vuelve adorno. Estos tres cascanueces de madera remiten a una tradición iniciada hacia 1870 por Wilhelm Füchtner en Seiffen, Alemania, y hoy decoran casas colombianas en diciembre.",
-     aprender:"Que tres piezas casi iguales también forman un grupo: comparten material, técnica y forma, y solo cambia el atuendo. El rey, el soldado y el blanco muestran cómo una serie se reconoce por lo que repite y por lo que varía.",
+     aprender:"Que tres piezas casi iguales también forman un grupo: comparten material, técnica y forma, y solo cambia el atuendo. El rey, el soldado y el soldado blanco muestran cómo una serie se reconoce por lo que repite y por lo que varía.",
      encontrar:"Los tres cascanueces en vitrina, una cédula por pieza y una pantalla con sus modelos 3D para girarlos y acercarlos sin manipular las piezas reales.",
      mediacion:{t:"Pregunta gatillo", x:"¿Qué hace un soldadito de madera de tradición alemana en la misma repisa que la Patrona de Colombia?"},
      objetos:["rey","soldado","tambor"]},
@@ -351,9 +351,9 @@ const OBJETOS = {
     fuente:"Registro fotográfico propio (sin catálogo). Origen: Festivos.com.co, «Virgen de Chiquinquirá»; El Colombiano, «Patrona de Colombia».",
     conservacion:"No indicado.", etiqueta:"Virgen de Chiquinquirá Firenzi",
     alt:"Modelo 3D aproximado de una figura de la Virgen con corona y manto que sostiene al Niño en brazos, sobre una base con una etiqueta."},
-  rey:casc("rey",4,"Cascanueces rey","vestido de rey","Su atuendo de rey, distinto al uniforme de los otros dos cascanueces.","el cascanueces soldado y el cascanueces blanco"),
-  soldado:casc("soldado",5,"Cascanueces soldado","con uniforme de soldado","Su uniforme de soldado, que lo diferencia del rey y del blanco.","el cascanueces rey y el cascanueces blanco"),
-  tambor:casc("tambor",6,"Cascanueces blanco","con uniforme blanco","Su uniforme blanco, distinto al del rey y al del soldado.","el cascanueces rey y el cascanueces soldado"),
+  rey:casc("rey",4,"Cascanueces rey","vestido de rey","Su atuendo de rey, distinto al uniforme de los otros dos cascanueces.","el cascanueces soldado y el cascanueces soldado blanco"),
+  soldado:casc("soldado",5,"Cascanueces soldado","con uniforme de soldado","Su uniforme de soldado, que lo diferencia del rey y del soldado blanco.","el cascanueces rey y el cascanueces soldado blanco"),
+  tambor:casc("tambor",6,"Cascanueces soldado blanco","con uniforme blanco de soldado","Su uniforme blanco, distinto al del rey y al del soldado.","el cascanueces rey y el cascanueces soldado"),
   adquisicion:{id:"adquisicion", num:7, lugar:"E", propuesta:true, titulo:"La pieza de tu familia", tipo:"Adquisición propuesta: Reyes Magos o pesebre (por definir)",
     autor:"Artesano de Boyacá o Nariño (por definir).", fecha:"Por definir.",
     material:"Un material distinto a los ya presentes: cerámica, tela o madera tallada", tecnica:"Hecha a mano (cerámica o talla en madera)",
@@ -406,7 +406,7 @@ const PARADAS = {
   B2:{lugar:"B", tit:"Sagrada Familia", pos:[2.1,2.3], mira:[1.6,1.15,0.6], abrir:()=>abrirObjeto("sagrada")},
   C1:{lugar:"C", tit:"Virgen de Chiquinquirá", pos:[-6.9,-0.6], mira:[-8.9,1.2,-1.4], abrir:()=>abrirObjeto("virgen")},
   C2:{lugar:"C", tit:"Mapa y línea de tiempo de orígenes", pos:[-7.0,1.95], mira:[-10,1.6,1.95], abrir:()=>abrirMapa()},
-  D:{lugar:"D", tit:"Cascanueces rey, soldado y blanco", pos:[6.5,-0.6], mira:[8.8,1.2,-0.6], abrir:()=>abrirComparar()},
+  D:{lugar:"D", tit:"Cascanueces rey, soldado y soldado blanco", pos:[6.5,-0.6], mira:[8.8,1.2,-0.6], abrir:()=>abrirComparar()},
   E1:{lugar:"E", tit:"La pieza de tu familia: el pedestal vacío", pos:[0,-4.0], mira:[0,1.2,-6.7], abrir:()=>abrirObjeto("adquisicion")},
   E2:{lugar:"E", tit:"Actividad de criterio y ficha de salida", pos:[3.4,-4.5], mira:[4.0,1.25,-6.6], abrir:()=>abrirActividad()}
 };
@@ -1220,7 +1220,7 @@ function montaje(){
   for(const [t] of tipos){ const c=conModeloReal(t,cascanueces(t)); c.scale.setScalar(.72); c.position.set(8.8,.93,fotoOrden[t]); c.rotation.y=-Math.PI/2; escena.add(c); tocable(c,()=>abrirObjeto(t),OBJETOS[t].titulo); cedula3D(OBJETOS[t],8.3,.78,fotoOrden[t],-Math.PI/2); }
   tocable(vd,()=>abrirComparar(),"Vitrina de los cascanueces");
   obst(8.8,-.6,.75,2.1);
-  pantallaPared(9.94,1.6,2.05,-Math.PI/2,1.7,1.05,texPantalla("Vista comparada","Rey · soldado · blanco en 3D","#2d6a4a",(g,w)=>{ const cols=["#1f5a3a","#1b2a5c","#eee4cf"]; cols.forEach((c,i)=>{ const x=200+i*250; g.fillStyle=c; g.fillRect(x-40,120,80,150); g.fillStyle="#f0c6a0"; g.fillRect(x-35,70,70,55); g.fillStyle=i===0?"#d4a640":i===1?"#141212":"#f7f3ea"; g.fillRect(x-38,20,76,50); g.fillStyle="#f7f3ea"; g.fillRect(x-35,108,70,16); }); }),()=>abrirComparar(),"Pantalla: vista comparada de los cascanueces");
+  pantallaPared(9.94,1.6,2.05,-Math.PI/2,1.7,1.05,texPantalla("Vista comparada","Rey · soldado · soldado blanco","#2d6a4a",(g,w)=>{ const cols=["#1f5a3a","#1b2a5c","#eee4cf"]; cols.forEach((c,i)=>{ const x=200+i*250; g.fillStyle=c; g.fillRect(x-40,120,80,150); g.fillStyle="#f0c6a0"; g.fillRect(x-35,70,70,55); g.fillStyle=i===0?"#d4a640":i===1?"#141212":"#f7f3ea"; g.fillRect(x-38,20,76,50); g.fillStyle="#f7f3ea"; g.fillRect(x-35,108,70,16); }); }),()=>abrirComparar(),"Pantalla: vista comparada de los cascanueces");
   luzFoco(7.8,3.6,-.6,8.8,1.2,-.6,30,.42); luzFoco(7.6,3.6,-3.6,9.9,1.7,-3.6,16,.5); luzFoco(7.8,3.6,2.0,9.9,1.6,2.0,8,.55);
 
   /* ---- Lugar E: ¿Qué hace una colección? ---- */
@@ -1328,7 +1328,7 @@ function montaje(){
     credito.position.set(3.25,1.05,zp+.02); escena.add(credito);
     luzFoco(-1.9,3.7,-6.6,-1.9,1.9,-7.95,22,.5); luzFoco(1.9,3.7,-6.6,1.9,1.9,-7.95,22,.5); luzFoco(0,3.7,-6.2,0,3.2,-7.95,14,.45);
   }
-  totem(4.0,-6.6,0,texPantalla("Actividad de criterio","Agrupa los seis objetos · ficha de salida","#6b3b5e",(g,w)=>{ const n=["Pesebre","Sagrada Familia","Virgen","Rey","Soldado","Blanco"]; g.font=`600 26px ${FT}`; n.forEach((t,i)=>{ const x=60+(i%3)*270, y=60+Math.floor(i/3)*90; g.fillStyle="#f7f0e3"; rr(g,x,y,240,64,10); g.fill(); g.fillStyle="#2b2019"; g.fillText(t,x+18,y+42); }); }),()=>abrirActividad(),"Actividad de criterio y ficha de salida",1.1,.68);
+  totem(4.0,-6.6,0,texPantalla("Actividad de criterio","Agrupa los seis objetos · ficha de salida","#6b3b5e",(g,w)=>{ const n=["Pesebre","Sagrada Familia","Virgen","Rey","Soldado","Soldado blanco"]; g.font=`600 26px ${FT}`; n.forEach((t,i)=>{ const x=60+(i%3)*270, y=60+Math.floor(i/3)*90; g.fillStyle="#f7f0e3"; rr(g,x,y,240,64,10); g.fill(); g.fillStyle="#2b2019"; g.fillText(t,x+18,y+42); }); }),()=>abrirActividad(),"Actividad de criterio y ficha de salida",1.1,.68);
   luzFoco(-2.6,3.6,-6.3,-4.3,1.7,-7.95,16,.55); luzFoco(4,3.6,-5.2,4,1.3,-6.6,10,.4);
 
 
@@ -1755,10 +1755,10 @@ function abrirEtiqueta(){
 
 function abrirComparar(){
   const L=LUGARES.D;
-  abrirDialogo({eyebrow:"Lugar D · Pantalla", titulo:"Vista comparada de los tres atuendos", letra:"D", color:L.color, html:`<div class="dos-col">${bloqueVisor("Los tres cascanueces lado a lado: a la izquierda el blanco, de chaqueta clara y gorro alto blanco; en el centro el soldado, de chaqueta azul y gorro negro; a la derecha el rey, de chaqueta verde, capa roja y corona dorada.")}
-  <div class="cedula"><div class="num">Serie y variación</div><h3>Rey, soldado y blanco</h3>
+  abrirDialogo({eyebrow:"Lugar D · Pantalla", titulo:"Vista comparada de los tres atuendos", letra:"D", color:L.color, html:`<div class="dos-col">${bloqueVisor("Los tres cascanueces lado a lado: a la izquierda el soldado blanco, de chaqueta clara y gorro alto blanco; en el centro el soldado, de chaqueta azul y gorro negro; a la derecha el rey, de chaqueta verde, capa roja y corona dorada.")}
+  <div class="cedula"><div class="num">Serie y variación</div><h3>Rey, soldado y soldado blanco</h3>
   <p class="curatorial">${esc(L.aprender)}</p>
-  <dl><dt>Lo que se repite</dt><dd>Material (madera policromada), técnica (elaboración en madera y pintura) y forma de cascanueces.</dd><dt>Lo que cambia</dt><dd>El atuendo: rey, soldado y blanco.</dd><dt>Tradición</dt><dd>Wilhelm Füchtner, Seiffen (Erzgebirge, Alemania), hacia 1870–1872.</dd></dl>
+  <dl><dt>Lo que se repite</dt><dd>Material (madera policromada), técnica (elaboración en madera y pintura) y forma de cascanueces.</dd><dt>Lo que cambia</dt><dd>El atuendo: rey, soldado y soldado blanco.</dd><dt>Tradición</dt><dd>Wilhelm Füchtner, Seiffen (Erzgebirge, Alemania), hacia 1870–1872.</dd></dl>
   <div class="mediacion" style="--acento:${L.color}"><b>${L.mediacion.t}</b>${esc(L.mediacion.x)}</div>
   <div class="piezas-lugar">${["rey","soldado","tambor"].map(t=>`<button class="btn" type="button" data-o="${t}">Cédula: ${OBJETOS[t].titulo}</button>`).join("")}</div></div></div>`});
   const g=new THREE.Group(); [["tambor",-.42],["soldado",0],["rey",.42]].forEach(([t,x])=>{ const c=conModeloReal(t,cascanueces(t)); c.position.x=x; g.add(c); });
