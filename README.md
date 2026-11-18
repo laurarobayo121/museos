@@ -7,7 +7,9 @@ Guiones: Laura Robayo · Cristian Peña
 
 ## Cómo verla
 
-Abre `index.html` con doble clic en cualquier navegador (Chrome, Edge, Safari o Firefox). Necesita internet para cargar Three.js y las fuentes. Descarga la carpeta completa: los modelos 3D están en `modelos/`.
+En línea: https://laurarobayo121.github.io/museos/
+
+O en tu computador: Abre `index.html` con doble clic en cualquier navegador (Chrome, Edge, Safari o Firefox). Necesita internet para cargar Three.js y las fuentes. Descarga la carpeta completa: los modelos 3D están en `modelos/`.
 
 Con doble clic los modelos se leen de `modelos/embebidos/` (copias en base64 sin Draco). Si cambias un `.glb`, vuelve a generarlas con `node herramientas/empaquetar_modelos.mjs` (instrucciones dentro del archivo).
 
@@ -19,7 +21,7 @@ Con doble clic los modelos se leen de `modelos/embebidos/` (copias en base64 sin
 ## Documentos
 
 - `docs/Guiones_Ecos_Navidenos.pdf`: guiones de la exposición.
-- `Presentacion_Ecos_Navidenos.pptx`: presentación para la sustentación. Ábrela desde esta carpeta: el botón «Abrir la exposición» abre `index.html`.
+- `Presentacion_Ecos_Navidenos.pptx`: presentación para la sustentación. El botón «Abrir la exposición» abre la página https://laurarobayo121.github.io/museos/
 - `presentacion/Ecos_Navidenos_Guiones.pptx` y `presentacion/Ecos_Navidenos_Decisiones_de_diseno.pptx`: versiones de apoyo.
 
 ## Créditos de imágenes
