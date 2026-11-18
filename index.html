@@ -1,9 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ecos Navideños</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
+[hidden]{display:none!important} /* la página corre suelta (GitHub Pages / servidor local): ocultar lo marcado como hidden */
+*,*::before,*::after{box-sizing:border-box} html,body{margin:0}
 /* Concepto: una sala de casa colombiana en diciembre, de noche; la interfaz es papel de cédula sobre fondo de alumbrado. Un solo tema oscuro cálido, elegido a propósito. */
 :root{
   color-scheme: dark;
@@ -243,8 +248,11 @@ label.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:6px}
   </div>
 </div>
 
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 
 /* =====================================================================
    CONTENIDO (tomado de los guiones, el taller de reconocimiento y la
@@ -814,6 +822,70 @@ const elegibles=[]; // mallas que se pueden tocar
 const obstaculos=[];
 function obst(cx,cz,w,d){ obstaculos.push({x1:cx-w/2,x2:cx+w/2,z1:cz-d/2,z2:cz+d/2}); }
 function tocable(obj,accion,nombre){ obj.traverse(m=>{ if(m.isMesh){ m.userData.accion=accion; m.userData.nombre=nombre; elegibles.push(m);} }); }
+
+/* =====================================================================
+   MODELOS 3D REALES (esculpidos en Blender, exportados a glTF/Draco)
+   Cada pieza se crea primero con su figura de respaldo hecha en código;
+   cuando el .glb termina de cargar, la reemplaza con el mismo tamaño y
+   la misma base. Si no carga (por ejemplo, al abrir index.html con doble
+   clic, sin servidor), se queda la figura de respaldo.
+   ===================================================================== */
+const MODELOS_GLB={
+  pesebre:{url:"modelos/pesebre.glb", ajuste:"caja", brillo:1.25},
+  sagrada:{url:"modelos/sagrada_familia.glb", ajuste:"alto"},
+  virgen:{url:"modelos/virgen.glb", ajuste:"alto"},
+  rey:{url:"modelos/cascanueces_rey.glb", ajuste:"alto"},
+  soldado:{url:"modelos/cascanueces_soldado.glb", ajuste:"alto"},
+  tambor:{url:"modelos/cascanueces_tambor.glb", ajuste:"alto"}
+};
+const VERSION_MODELOS="2"; // súbelo al reemplazar un .glb para que los navegadores no usen la copia vieja
+const cargadorGLB=new GLTFLoader();
+{ const draco=new DRACOLoader(); draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/"); cargadorGLB.setDRACOLoader(draco); }
+const cacheGLB={};
+function promesaGLB(id){
+  if(!cacheGLB[id]) cacheGLB[id]=cargadorGLB.loadAsync(MODELOS_GLB[id].url+"?v="+VERSION_MODELOS).then(gl=>{
+    gl.scene.traverse(o=>{ if(o.isMesh){ const ms=Array.isArray(o.material)?o.material:[o.material];
+      ms.forEach(m=>{ if("metalness" in m) m.metalness=Math.min(m.metalness,.35); if(MODELOS_GLB[id].brillo && m.color) m.color.multiplyScalar(MODELOS_GLB[id].brillo); if(/Portal/.test(m.name)){ m.normalMap=null; m.needsUpdate=true; } }); if(/Portal/.test(o.name)) o.geometry.computeVertexNormals(); } }); // la sala no tiene mapa de entorno: el metal puro se vería negro; el pesebre se aclara para la luz tenue de la sala
+    return gl.scene; }).catch(e=>{ console.warn(`Modelo 3D "${id}" no disponible; se usa la figura de respaldo.`,e); return null; });
+  return cacheGLB[id];
+}
+/* Puntos de información del pesebre sobre las figuras reales (coordenadas del modelo, en metros) */
+const PESEBRE_PUNTOS_GLB=[[.008,.06,.045],[-.040,.115,.032],[.030,.175,-.012],[.005,.31,-.03],[-.068,.17,-.018],[.30,.15,0],[-.065,.045,.098],[.235,.07,.15],[.105,.085,.20],[.05,.25,-.065],[-.088,.20,-.04]];
+/* Guirnalda LED sobre el borde de la gruta (coordenadas del modelo) */
+const PESEBRE_LED_GLB=[[-.0885,.140],[-.0880,.255],[-.0570,.258],[-.0300,.226],[-.0050,.248],[.0150,.278],[.0280,.305],[.0420,.322],[.0800,.326],[.1200,.322],[.1320,.300],[.1360,.262],[.1320,.230]];
+function conModeloReal(id,respaldo){
+  const g=new THREE.Group();
+  respaldo.updateMatrixWorld(true);
+  const cajaR=new THREE.Box3().setFromObject(respaldo), tamR=cajaR.getSize(new THREE.Vector3()), cenR=cajaR.getCenter(new THREE.Vector3());
+  g.add(respaldo);
+  if(respaldo.userData.puntos) g.userData.puntos=respaldo.userData.puntos;
+  if(!MODELOS_GLB[id]){ g.userData.listo=Promise.resolve(g); return g; }
+  g.userData.listo=promesaGLB(id).then(src=>{
+    if(!src) return g;
+    const m=src.clone(true);
+    const cajaM=new THREE.Box3().setFromObject(m), tamM=cajaM.getSize(new THREE.Vector3());
+    const s = MODELOS_GLB[id].ajuste==="caja" ? Math.min(tamR.x/tamM.x, tamR.y/tamM.y, tamR.z/tamM.z) : tamR.y/tamM.y;
+    m.scale.setScalar(s); m.updateMatrixWorld(true);
+    const cajaS=new THREE.Box3().setFromObject(m), cenS=cajaS.getCenter(new THREE.Vector3());
+    m.position.set(cenR.x-cenS.x, cajaR.min.y-cajaS.min.y, cenR.z-cenS.z);
+    const aGlb=v=>new THREE.Vector3(v[0]*s+m.position.x, v[1]*s+m.position.y, v[2]*s+m.position.z);
+    if(id==="pesebre"){
+      g.userData.puntos=PESEBRE_PUNTOS_GLB.map(p=>aGlb(p).toArray());
+      const led=[]; for(let i=0;i<PESEBRE_LED_GLB.length-1;i++){ const [x0,y0]=PESEBRE_LED_GLB[i],[x1,y1]=PESEBRE_LED_GLB[i+1]; for(let k=0;k<4;k++){ const t=k/4; led.push(aGlb([x0+(x1-x0)*t, y0+(y1-y0)*t+.006, -.040])); } }
+      const pg=new THREE.BufferGeometry().setFromPoints(led); const cols=new Float32Array(led.length*3); for(let i=0;i<led.length;i++){ cols[i*3]=1; cols[i*3+1]=.85; cols[i*3+2]=.55; }
+      pg.setAttribute("color",new THREE.BufferAttribute(cols,3));
+      const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,map:glowTex,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+      pts.userData.titila=true; g.add(pts);
+      const luz=new THREE.PointLight(0xffd9a0,.25,1.6,2); luz.position.copy(aGlb([.03,.2,.0])); g.add(luz);
+    }
+    // conservar la acción al tocar la pieza
+    let accion=null,nombre=null; respaldo.traverse(o=>{ if(!accion && o.isMesh && o.userData.accion){ accion=o.userData.accion; nombre=o.userData.nombre; } });
+    if(accion){ respaldo.traverse(o=>{ const i=elegibles.indexOf(o); if(i>=0) elegibles.splice(i,1); }); tocable(m,accion,nombre); }
+    g.remove(respaldo); g.add(m);
+    return g;
+  });
+  return g;
+}
 const animados=[];
 
 function construirSala(){
@@ -1107,11 +1179,11 @@ function montaje(){
 
   /* ---- Lugar B: Una tradición de ocho siglos ---- */
   const vb=vitrina(-.9,.2,1.9,1.2,.85,.95);
-  const pes=pesebre(); pes.position.set(-.9,.88,.2); pes.scale.setScalar(1.1); escena.add(pes); tocable(pes,()=>abrirObjeto("pesebre"),"Pesebre navideño completo"); tocable(vb,()=>abrirObjeto("pesebre"),"Pesebre navideño completo");
+  const pes=conModeloReal("pesebre",pesebre()); pes.position.set(-.9,.88,.2); pes.scale.setScalar(1.1); escena.add(pes); tocable(pes,()=>abrirObjeto("pesebre"),"Pesebre navideño completo"); tocable(vb,()=>abrirObjeto("pesebre"),"Pesebre navideño completo");
   obst(-.9,.2,1.9,1.2);
   cedula3D(OBJETOS.pesebre,-.9,.74,.84,0);
   const vs=vitrina(1.6,.6,.62,.62,1.0,.65);
-  const sf=sagradaFamilia(); sf.position.set(1.6,1.03,.6); sf.scale.setScalar(1.25); escena.add(sf); tocable(sf,()=>abrirObjeto("sagrada"),"Sagrada Familia"); tocable(vs,()=>abrirObjeto("sagrada"),"Sagrada Familia");
+  const sf=conModeloReal("sagrada",sagradaFamilia()); sf.position.set(1.6,1.03,.6); sf.scale.setScalar(1.25); escena.add(sf); tocable(sf,()=>abrirObjeto("sagrada"),"Sagrada Familia"); tocable(vs,()=>abrirObjeto("sagrada"),"Sagrada Familia");
   obst(1.6,.6,.62,.62);
   cedula3D(OBJETOS.sagrada,1.6,.86,.95,0);
   panelLibre("B",-3.1,-1.0,.55,2.2,1.65,texPanel("B"),()=>abrirLugar("B"),"Panel del lugar B"); obst(-3.1,-1.0,2.0,1.3);
@@ -1121,7 +1193,7 @@ function montaje(){
   /* ---- Lugar C: Una devoción propia ---- */
   panelPared("C",-9.95,1.75,-3.6,Math.PI/2);
   const vv=vitrina(-8.9,-1.4,.7,.7,1.05,.8);
-  const vg=virgen(); vg.position.set(-8.9,1.08,-1.4); vg.rotation.y=Math.PI/2; vg.scale.setScalar(1.25); escena.add(vg); tocable(vg,()=>abrirObjeto("virgen"),"Virgen de Chiquinquirá"); tocable(vv,()=>abrirObjeto("virgen"),"Virgen de Chiquinquirá");
+  const vg=conModeloReal("virgen",virgen()); vg.position.set(-8.9,1.08,-1.4); vg.rotation.y=Math.PI/2; vg.scale.setScalar(1.25); escena.add(vg); tocable(vg,()=>abrirObjeto("virgen"),"Virgen de Chiquinquirá"); tocable(vv,()=>abrirObjeto("virgen"),"Virgen de Chiquinquirá");
   obst(-8.9,-1.4,.7,.7);
   cedula3D(OBJETOS.virgen,-8.5,.9,-1.4,Math.PI/2);
   pantallaPared(-9.94,1.55,.1,Math.PI/2,1.0,.62,texPantalla("Detalle de la etiqueta","Toca para acercarte","#2f5596",(g,w)=>{ g.fillStyle="#f8f3e6"; g.fillRect(140,120,620,150); g.strokeStyle="#b08a3a"; g.lineWidth=6; g.strokeRect(150,130,600,130); g.fillStyle="#2b2019"; g.textAlign="center"; g.font=`600 44px ${FT}`; g.fillText("Virgen de Chiquinquirá",w/2,196); g.fillStyle="#7a5a1a"; g.font=`700 36px ${FT}`; g.fillText("Firenzi",w/2,244); g.textAlign="left"; }),()=>abrirEtiqueta(),"Pantalla: detalle de la etiqueta");
@@ -1133,7 +1205,7 @@ function montaje(){
   const vd=vitrina(8.8,-.6,.75,2.1,.9,.85);
   const tipos=[["rey",-1.25],["soldado",-.6],["tambor",.05]];
   const fotoOrden={rey:.0,soldado:-.6,tambor:-1.25};
-  for(const [t] of tipos){ const c=cascanueces(t); c.scale.setScalar(.72); c.position.set(8.8,.93,fotoOrden[t]); c.rotation.y=-Math.PI/2; escena.add(c); tocable(c,()=>abrirObjeto(t),OBJETOS[t].titulo); cedula3D(OBJETOS[t],8.3,.78,fotoOrden[t],-Math.PI/2); }
+  for(const [t] of tipos){ const c=conModeloReal(t,cascanueces(t)); c.scale.setScalar(.72); c.position.set(8.8,.93,fotoOrden[t]); c.rotation.y=-Math.PI/2; escena.add(c); tocable(c,()=>abrirObjeto(t),OBJETOS[t].titulo); cedula3D(OBJETOS[t],8.3,.78,fotoOrden[t],-Math.PI/2); }
   tocable(vd,()=>abrirComparar(),"Vitrina de los cascanueces");
   obst(8.8,-.6,.75,2.1);
   pantallaPared(9.94,1.6,2.05,-Math.PI/2,1.7,1.05,texPantalla("Vista comparada","Rey · soldado · tambor en 3D","#2d6a4a",(g,w)=>{ const cols=["#1f5a3a","#1b2a5c","#eee4cf"]; cols.forEach((c,i)=>{ const x=200+i*250; g.fillStyle=c; g.fillRect(x-40,120,80,150); g.fillStyle="#f0c6a0"; g.fillRect(x-35,70,70,55); g.fillStyle=i===0?"#d4a640":i===1?"#141212":"#f7f3ea"; g.fillRect(x-38,20,76,50); g.fillStyle="#f7f3ea"; g.fillRect(x-35,108,70,16); }); }),()=>abrirComparar(),"Pantalla: vista comparada de los cascanueces");
@@ -1506,10 +1578,10 @@ const visor={
 };
 function modelo(id){
   switch(id){
-    case "pesebre": return pesebre();
-    case "sagrada": return sagradaFamilia();
-    case "virgen": return virgen();
-    case "rey": case "soldado": case "tambor": return cascanueces(id);
+    case "pesebre": return conModeloReal("pesebre",pesebre());
+    case "sagrada": return conModeloReal("sagrada",sagradaFamilia());
+    case "virgen": return conModeloReal("virgen",virgen());
+    case "rey": case "soldado": case "tambor": return conModeloReal(id,cascanueces(id));
     case "adquisicion": return pedestalVacio();
   }
 }
@@ -1582,7 +1654,7 @@ function abrirObjeto(id){
     if(id==="adquisicion"){ opts.zoom=2.4; }
     iniciarVisor(m,opts);
     if(id==="pesebre"){
-      visor.marcar(m.userData.puntos.map(p=>new THREE.Vector3(...p).add(new THREE.Vector3(0,.04,0))),.06);
+      m.userData.listo.then(()=>{ if(visor.raiz!==m) return; visor.marcar(m.userData.puntos.map(p=>new THREE.Vector3(...p).add(new THREE.Vector3(0,.04,0))),.06); });
       const elegir=i=>{ cuerpo.querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.p===i))); const p=PESEBRE_PUNTOS[i]; document.getElementById("punto-info").innerHTML=`<b>${i+1}. ${esc(p.n)}.</b> ${esc(p.d)}`; const v=new THREE.Vector3(...m.userData.puntos[i]); visor.centro.lerp(v,.6); visor.radio=Math.max(visor.radioMin,visor.inicial.radio*.55); };
       visor.onMarcador=elegir; cuerpo.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>elegir(+b.dataset.p));
     } else visor.onMarcador=null;
@@ -1676,7 +1748,7 @@ function abrirComparar(){
   <dl><dt>Lo que se repite</dt><dd>Material (madera policromada), técnica (elaboración en madera y pintura) y forma de cascanueces.</dd><dt>Lo que cambia</dt><dd>El atuendo: rey, soldado y tambor.</dd><dt>Tradición</dt><dd>Wilhelm Füchtner, Seiffen (Erzgebirge, Alemania), hacia 1870–1872.</dd></dl>
   <div class="mediacion" style="--acento:${L.color}"><b>${L.mediacion.t}</b>${esc(L.mediacion.x)}</div>
   <div class="piezas-lugar">${["rey","soldado","tambor"].map(t=>`<button class="btn" type="button" data-o="${t}">Cédula: ${OBJETOS[t].titulo}</button>`).join("")}</div></div></div>`});
-  const g=new THREE.Group(); [["tambor",-.42],["soldado",0],["rey",.42]].forEach(([t,x])=>{ const c=cascanueces(t); c.position.x=x; g.add(c); });
+  const g=new THREE.Group(); [["tambor",-.42],["soldado",0],["rey",.42]].forEach(([t,x])=>{ const c=conModeloReal(t,cascanueces(t)); c.position.x=x; g.add(c); });
   iniciarVisor(g,{alt:"Vista comparada",zoom:1.55,phi:1.35,theta:0,auto:false});
   cuerpo.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>abrirObjeto(b.dataset.o));
 }
