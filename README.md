@@ -19,7 +19,7 @@ Con doble clic los modelos se leen de `modelos/embebidos/` (copias en base64 sin
 ## Documentos
 
 - `docs/Guiones_Ecos_Navidenos.pdf`: guiones de la exposición.
-- `presentacion/Ecos_Navidenos_Del_guion_a_la_sala.pptx`: presentación para la sustentación.
+- `Presentacion_Ecos_Navidenos.pptx`: presentación para la sustentación. Ábrela desde esta carpeta: el botón «Abrir la exposición» abre `index.html`.
 - `presentacion/Ecos_Navidenos_Guiones.pptx` y `presentacion/Ecos_Navidenos_Decisiones_de_diseno.pptx`: versiones de apoyo.
 
 ## Créditos de imágenes
