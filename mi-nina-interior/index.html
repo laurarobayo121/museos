@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mi niña interior</title>
+<meta name="description" content="Exposición virtual 3D: cuando los objetos con los que jugamos se convierten en los que recordamos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,700&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --rosa:#d81b74;
+  --rosa-osc:#b0145c;
+  --rosa-claro:#fbe4ef;
+  --rosa-papel:#fff6fa;
+  --tinta:#1d1a1c;
+  --tinta-suave:#6d5f66;
+  --linea:#f1c6da;
+  --oro:#c9a14a;
+  --f-display:"Playfair Display", Georgia, serif;
+  --f-texto:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gl:max(16px, env(safe-area-inset-left,0px));
+  --gr:max(16px, env(safe-area-inset-right,0px));
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#e9eef3;color:var(--tinta);font-family:var(--f-texto);font-size:15px;overflow:hidden;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer}
+#escena{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+
+/* HUD */
+#estacion{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:var(--gl);z-index:5;pointer-events:none;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+#estacion b{display:block;font-size:22px;font-weight:700;letter-spacing:.01em}
+#estacion span{display:block;font-size:12.5px;font-style:italic;opacity:.92;margin-top:2px}
+#mira{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(216,27,116,.7);z-index:5;pointer-events:none}
+#mira.activa{background:var(--rosa);box-shadow:0 0 0 2px #fff}
+#aviso{position:fixed;left:50%;top:calc(50% + 26px);transform:translateX(-50%);z-index:5;pointer-events:none;background:rgba(40,36,40,.78);color:#fff;font-size:13px;padding:6px 16px;border-radius:4px;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+#aviso b{font-weight:800;margin-right:6px}
+#ayuda{position:fixed;left:var(--gl);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:5;font-size:11px;color:rgba(255,255,255,.88);text-shadow:0 1px 3px rgba(0,0,0,.5);pointer-events:none}
+#toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);z-index:8;background:var(--rosa);color:#fff;font-weight:700;font-size:13.5px;padding:8px 18px;border-radius:4px;text-align:center;max-width:min(440px,calc(100vw - 32px));box-shadow:0 6px 20px rgba(216,27,116,.35);transition:opacity .3s}
+#barra{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:var(--gr);z-index:6;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:60vw}
+.chip{border:0;background:rgba(255,255,255,.9);color:var(--rosa-osc);font-weight:700;font-size:12.5px;padding:7px 11px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.chip:hover{background:var(--rosa);color:#fff}
+
+/* Táctil */
+#joy{position:fixed;left:calc(var(--gl) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.28);border:2px solid rgba(255,255,255,.7);z-index:6;touch-action:none}
+#joy i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(216,27,116,.85)}
+
+/* Portada */
+#portada{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:linear-gradient(160deg,#fff 0%,#fde7f1 55%,#f7cfe1 100%);padding:24px var(--gr) 24px var(--gl);overflow:auto}
+.portada-in{max-width:560px;text-align:center}
+.moño{width:54px;height:30px;margin:0 auto 6px}
+#portada h1{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,9vw,72px);line-height:.95;margin:0;color:var(--rosa);letter-spacing:.01em}
+#portada .lema{font-family:var(--f-display);font-style:italic;font-size:clamp(16px,3.6vw,20px);color:var(--tinta);margin:14px 0 20px}
+#portada p{color:var(--tinta-suave);line-height:1.55;margin:0 0 10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:var(--rosa);color:#fff;font-weight:700;font-size:15px;padding:12px 26px;border-radius:4px;box-shadow:0 6px 18px rgba(216,27,116,.3)}
+.btn:hover{background:var(--rosa-osc)}
+.btn.neg{background:#1d1a1c;box-shadow:none}
+.btn.sec{background:#fff;color:var(--rosa);border:1.5px solid var(--rosa);box-shadow:none}
+.btn.full{width:100%}
+#portada .btn{margin-top:14px}
+#portada small{display:block;margin-top:16px;color:var(--tinta-suave);font-size:12px}
+
+/* Modal */
+#velo{position:fixed;inset:0;z-index:10;background:rgba(40,30,36,.28);display:grid;place-items:center;padding:16px var(--gr) 16px var(--gl)}
+.modal{position:relative;width:min(880px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--rosa-papel);border-top:4px solid var(--rosa);box-shadow:0 0 0 1.5px var(--linea),0 20px 60px rgba(0,0,0,.25);padding:18px 22px 22px}
+.modal.chico{width:min(560px,100%)}
+.modal h2{margin:0 36px 2px 0;font-size:21px;font-weight:800;color:var(--tinta)}
+.modal .sub{margin:0 0 14px;color:var(--rosa);font-size:12.5px;font-style:italic}
+.cerrar{position:absolute;top:14px;right:14px;width:30px;height:30px;border:0;border-radius:4px;background:#fbe0ec;color:var(--rosa);font-weight:800;font-size:15px}
+.cerrar:hover{background:var(--rosa);color:#fff}
+.etq{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--rosa);margin:12px 0 6px}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14px;padding:10px 12px;border:1.5px solid #e9c8d7;border-radius:4px;background:#fff;color:var(--tinta);resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--rosa);outline-offset:0;border-color:transparent}
+.nota{font-size:12px;color:var(--tinta-suave);line-height:1.5}
+.pregunta-grande{font-size:20px;font-weight:800;color:var(--rosa);margin:4px 0 10px}
+.fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fila.fin{justify-content:flex-end}
+
+.ficha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px}
+@media (max-width:680px){.ficha{grid-template-columns:1fr}}
+.visor{position:relative;aspect-ratio:1/1.05;background:linear-gradient(180deg,#fdeef5,#f8e1ec);border-radius:2px;overflow:hidden}
+.visor canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
+.visor-nota{font-size:10.5px;font-style:italic;color:var(--tinta-suave);text-align:center;margin:6px 0 10px}
+.detalles{display:flex;flex-wrap:wrap;gap:6px}
+.detalles button{border:0;background:var(--rosa);color:#fff;font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:3px;flex:1 1 auto}
+.detalles button.neg{background:#1d1a1c}
+.detalles button[aria-pressed=true]{outline:2px solid var(--tinta);outline-offset:1px}
+.det-txt{font-size:12.5px;margin-top:8px;line-height:1.45;min-height:2.8em}
+dl.tec{margin:0;font-size:13px;line-height:1.6}
+dl.tec div{display:flex;gap:6px}
+dl.tec dt{font-weight:800;color:var(--rosa);white-space:nowrap}
+dl.tec dd{margin:0}
+.cedula{background:#fbe4ef;padding:12px 14px;margin-top:12px;border-left:3px solid var(--rosa)}
+.cedula .etq{margin-top:0}
+.cedula q{font-style:italic;font-size:14.5px;line-height:1.5;quotes:"“" "”"}
+.parr{font-size:13.5px;line-height:1.55;margin:0}
+
+/* comparar */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.duo .visor{aspect-ratio:1/1.1}
+.duo b{display:block;text-align:center;color:var(--rosa);font-size:13px;margin-top:8px}
+.quiz-p{font-size:15px;margin:16px 0 10px}
+.res{margin-top:12px;padding:12px 14px;background:#fff;border:1.5px solid var(--linea);font-size:14px;line-height:1.5}
+.res.ok{border-color:#3d9b6a}
+.res.no{border-color:var(--rosa)}
+
+/* ordenar */
+.casillas{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:620px){.casillas{grid-template-columns:repeat(3,1fr)}}
+.casilla{background:#1d1a1c;color:#fff;min-height:56px;display:grid;place-items:center;text-align:center;font-size:12px;font-weight:700;padding:6px;border-radius:2px}
+.casilla:nth-child(even){background:#3b3539}
+.casilla.llena{background:var(--rosa)}
+.casilla small{display:block;font-size:10px;opacity:.75}
+.pasos{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:620px){.pasos{grid-template-columns:repeat(3,1fr)}}
+.pasos button{border:0;background:var(--rosa);color:#fff;font-weight:700;font-size:13px;padding:10px 6px;border-radius:2px}
+.pasos button:disabled{opacity:.25;cursor:default}
+.sacude{animation:sac .35s}
+@keyframes sac{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* diseñador */
+.disenio{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:18px}
+@media (max-width:680px){.disenio{grid-template-columns:1fr}}
+.lienzo{background:#fbe4ef;display:grid;place-items:center;aspect-ratio:1/1.15}
+.lienzo svg{width:86%;height:auto}
+.opc{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.opc.dos{grid-template-columns:1fr 1fr}
+.opc button{border:0;background:transparent;font-size:12px;padding:6px 4px;border-radius:3px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--tinta)}
+.opc button:hover{background:#fbe0ec}
+.opc button[aria-pressed=true]{background:var(--rosa);color:#fff}
+.punto{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+
+/* línea de tiempo */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--rosa);padding:6px;border-radius:2px}
+.tabs button{border:0;background:transparent;color:#fff;font-weight:800;font-size:14px;padding:8px 14px;border-radius:2px;flex:1 1 auto}
+.tabs button[aria-selected=true]{background:#fff;color:var(--rosa)}
+.tab-cuerpo{background:#fbe4ef;padding:16px 18px;min-height:190px;margin-top:6px}
+.tab-cuerpo .anio{font-size:34px;font-weight:800;color:var(--rosa);line-height:1}
+.tab-cuerpo h3{margin:8px 0 6px;font-size:17px}
+
+/* curador */
+.votos{display:grid;gap:6px}
+.votos button{text-align:left;border:0;background:#fbe4ef;padding:10px 12px;font-weight:700;font-size:13px;border-radius:2px;color:var(--tinta)}
+.votos button[aria-pressed=true]{background:var(--rosa);color:#fff}
+.barra-r{margin:8px 0}
+.barra-r .t{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600}
+.barra-r .b{height:10px;background:#f6d4e3;border-radius:5px;overflow:hidden;margin-top:3px}
+.barra-r .b i{display:block;height:100%;background:var(--rosa)}
+
+/* colección ampliada */
+.rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pieza{background:#fff;border:1.5px solid var(--linea);padding:10px;font-size:12.5px;line-height:1.4}
+.pieza b{display:block;font-size:13.5px;color:var(--rosa);margin-bottom:2px}
+.pieza .n{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-suave)}
+.recuerdos-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}
+.postit{background:#ffd3e6;padding:10px;font-size:12.5px;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08);transform:rotate(-1deg)}
+.postit:nth-child(even){transform:rotate(1.2deg);background:#ffc1dc}
+.postit i{display:block;font-size:11px;color:var(--rosa-osc);margin-top:4px}
+
+@media (max-width:640px){
+  #estacion b{font-size:18px}
+  #barra{max-width:52vw}
+  .chip{font-size:11.5px;padding:6px 9px}
+  .modal{padding:16px 16px 18px}
+}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<canvas id="escena" tabindex="0" aria-label="Sala 3D de la exposición Mi niña interior"></canvas>
+
+<div id="estacion" hidden><b></b><span></span></div>
+<div id="mira" hidden></div>
+<div id="aviso" hidden></div>
+<div id="toast" hidden></div>
+<div id="barra" hidden>
+  <button class="chip" data-ir="0">1 Espejo</button>
+  <button class="chip" data-ir="1">2 Vitrina</button>
+  <button class="chip" data-ir="2">3 Tocador</button>
+  <button class="chip" data-ir="3">4 Rincón</button>
+  <button class="chip" data-ir="4">5 Cajón</button>
+</div>
+<div id="ayuda" hidden>WASD moverse · Ratón mirar · Clic o E interactuar · Shift correr · Tab estaciones · Esc cerrar</div>
+<div id="joy" hidden><i></i></div>
+
+<section id="portada">
+  <div class="portada-in">
+    <svg class="moño" viewBox="0 0 54 30" aria-hidden="true"><path d="M27 15 C18 2 4 2 4 13 C4 24 18 24 27 15 Z M27 15 C36 2 50 2 50 13 C50 24 36 24 27 15 Z" fill="#1d1a1c"/><path d="M24 16 L18 29 L23 27 L26 29 Z M30 16 L36 29 L31 27 L28 29 Z" fill="#1d1a1c"/><circle cx="27" cy="15" r="4" fill="#d81b74"/></svg>
+    <h1>Mi niña<br>interior</h1>
+    <p class="lema">Cuando los objetos con los que jugamos se convierten en los que recordamos.</p>
+    <p>Este museo es una habitación: un espejo, una vitrina de juego, un tocador, un rincón de recuerdos y un cajón. Puedes empezar por donde quieras; los números sugieren un orden.</p>
+    <button class="btn" id="entrar">Entrar a la sala</button>
+    <small id="ayuda-portada">Usa WASD para moverte y el ratón para mirar. Clic o E para interactuar.</small>
+  </div>
+</section>
+
+<div id="velo" hidden></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+/* =========================================================
+   MODELOS REALES (opcional)
+   Si pones archivos .glb en la carpeta "modelos/", reemplazan
+   las figuras provisionales. Deja la ruta en null si no hay.
+   ========================================================= */
+const MODELOS = {
+  nolee:    null, // 'modelos/nolee.glb'
+  delancey: null, // 'modelos/delancey.glb'
+  madison:  null, // 'modelos/madison.glb'
+  kennedy:  null, // 'modelos/kennedy.glb'
+  bolso:    null, // 'modelos/bolso-barbie.glb'
+  estuche:  null, // 'modelos/estuche-barbie.glb'
+};
+
+/* ---------- Almacenamiento local seguro ---------- */
+const guardar = (k, v) => { try { localStorage.setItem('mni:' + k, JSON.stringify(v)); } catch (e) {} };
+const leer = (k, d) => { try { const v = localStorage.getItem('mni:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+
+const esTactil = matchMedia('(pointer: coarse)').matches;
+
+/* ---------- Renderer y escena ---------- */
+const canvas = document.getElementById('escena');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = .95;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#e9eef3');
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 80);
+camera.rotation.order = 'YXZ';
+const ALTURA_OJOS = 1.6;
+camera.position.set(0, ALTURA_OJOS, 8);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+/* ---------- Utilidades ---------- */
+function lienzo(w, h, dibujar) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); dibujar(g, w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+function envolver(g, texto, x, y, maxW, lh) {
+  const palabras = texto.split(' '); let linea = ''; let yy = y;
+  for (const p of palabras) {
+    const prueba = linea ? linea + ' ' + p : p;
+    if (g.measureText(prueba).width > maxW && linea) { g.fillText(linea, x, yy); linea = p; yy += lh; }
+    else linea = prueba;
+  }
+  if (linea) g.fillText(linea, x, yy);
+  return yy + lh;
+}
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .6, metalness: 0, ...o });
+const ORO = mat('#c9a14a', { metalness: .85, roughness: .32 });
+const BLANCO = mat('#f7f7f5', { roughness: .7 });
+const ROSA_MUEBLE = mat('#f4c9d8', { roughness: .45 });
+const NEGRO = mat('#161416', { roughness: .45 });
+const ROSA = '#d81b74';
+function caja(w, h, d, m, x = 0, y = 0, z = 0, padre = scene) {
+  const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+  me.position.set(x, y, z); me.castShadow = true; me.receiveShadow = true; padre.add(me); return me;
+}
+function cil(rt, rb, h, m, x = 0, y = 0, z = 0, padre = scene, seg = 24) {
+  const me = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m);
+  me.position.set(x, y, z); me.castShadow = true; me.receiveShadow = true; padre.add(me); return me;
+}
+const interactivos = [];
+function interactivo(obj, etiqueta, accion) { obj.userData.inter = { etiqueta, accion }; interactivos.push(obj); return obj; }
+const obstaculos = [];
+function obstaculo(x, z, w, d) { obstaculos.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2 }); }
+
+/* ---------- Sala ---------- */
+const SALA = { x: 10, z: 9, h: 4.2 };
+// Piso de mármol ondulado
+const texPiso = lienzo(1024, 1024, (g, w, h) => {
+  g.fillStyle = '#dfe6ee'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 140; i++) {
+    const y0 = (i / 140) * h; const amp = 18 + Math.random() * 30; const f = .004 + Math.random() * .006; const fase = Math.random() * 6;
+    g.strokeStyle = `rgba(${150 + Math.random() * 40},${165 + Math.random() * 40},${185 + Math.random() * 40},${.25 + Math.random() * .4})`;
+    g.lineWidth = 1 + Math.random() * 3.5;
+    g.beginPath();
+    for (let x = 0; x <= w; x += 8) { const y = y0 + Math.sin(x * f + fase) * amp + Math.sin(x * f * 2.7 + fase) * amp * .35; x ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
+});
+texPiso.wrapS = texPiso.wrapT = THREE.RepeatWrapping; texPiso.repeat.set(3, 3);
+const piso = new THREE.Mesh(new THREE.PlaneGeometry(SALA.x * 2, SALA.z * 2), mat('#ffffff', { map: texPiso, roughness: .25, metalness: .05 }));
+piso.rotation.x = -Math.PI / 2; piso.receiveShadow = true; scene.add(piso);
+
+// Techo de madera
+const texTecho = lienzo(1024, 512, (g, w, h) => {
+  g.fillStyle = '#9a6b45'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 16; i++) { g.fillStyle = `rgba(60,35,18,${.08 + Math.random() * .12})`; g.fillRect(0, i * 32, w, 2); }
+  for (let i = 0; i < 400; i++) { g.strokeStyle = `rgba(70,40,20,${Math.random() * .12})`; g.beginPath(); const y = Math.random() * h; g.moveTo(Math.random() * w, y); g.lineTo(Math.random() * w, y + Math.random() * 4); g.stroke(); }
+});
+texTecho.wrapS = texTecho.wrapT = THREE.RepeatWrapping; texTecho.repeat.set(2, 2);
+const techo = new THREE.Mesh(new THREE.PlaneGeometry(SALA.x * 2, SALA.z * 2), mat('#ffffff', { map: texTecho }));
+techo.rotation.x = Math.PI / 2; techo.position.y = SALA.h; scene.add(techo);
+
+// Paredes
+const matPared = mat('#f4f6f8', { roughness: .95 });
+function pared(w, x, z, ry) {
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(w, SALA.h), matPared);
+  p.position.set(x, SALA.h / 2, z); p.rotation.y = ry; p.receiveShadow = true; scene.add(p);
+  const zocalo = new THREE.Mesh(new THREE.BoxGeometry(w, .12, .03), BLANCO);
+  zocalo.position.set(x, .06, z); zocalo.rotation.y = ry; zocalo.translateZ(.015); scene.add(zocalo);
+}
+pared(SALA.x * 2, 0, -SALA.z, 0);
+pared(SALA.x * 2, 0, SALA.z, Math.PI);
+pared(SALA.z * 2, -SALA.x, 0, Math.PI / 2);
+pared(SALA.z * 2, SALA.x, 0, -Math.PI / 2);
+
+// Alfombra rosada de entrada
+const alfombra = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 5.2), mat('#e48fc0', { roughness: .95 }));
+alfombra.rotation.x = -Math.PI / 2; alfombra.position.set(0, .005, 6.3); alfombra.receiveShadow = true; scene.add(alfombra);
+
+// Columnas
+function columna(x, z) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  caja(.62, .5, .62, BLANCO, 0, .25, 0, g);
+  const fuste = new THREE.Mesh(new THREE.CylinderGeometry(.2, .23, SALA.h - .85, 20), BLANCO);
+  fuste.position.y = .5 + (SALA.h - .85) / 2; fuste.castShadow = true; g.add(fuste);
+  cil(.27, .2, .14, BLANCO, 0, SALA.h - .3, 0, g);
+  caja(.62, .14, .62, BLANCO, 0, SALA.h - .16, 0, g);
+  for (const s of [-1, 1]) { const v = new THREE.Mesh(new THREE.TorusGeometry(.075, .028, 8, 16), BLANCO); v.position.set(s * .27, SALA.h - .3, 0); v.rotation.y = Math.PI / 2; g.add(v); }
+  obstaculo(x, z, .7, .7);
+}
+columna(-2.2, 2.6); columna(2.2, 2.6); columna(-7.2, -5.6); columna(7.6, -5.8); columna(1.2, -4.8);
+
+// Rieles de luz en el techo
+function riel(x, z, largo, ry = 0) {
+  const g = new THREE.Group(); g.position.set(x, SALA.h - .02, z); g.rotation.y = ry; scene.add(g);
+  caja(largo, .04, .05, NEGRO, 0, 0, 0, g);
+  for (let i = 0; i < 3; i++) {
+    const px = -largo / 2 + largo * (i + .5) / 3;
+    cil(.012, .012, .16, NEGRO, px, -.08, 0, g, 6);
+    const foco = cil(.05, .04, .16, NEGRO, px, -.18, .03, g, 12); foco.rotation.x = .6;
+  }
+}
+riel(-4, -3.5, 2.4, Math.PI / 2); riel(4.5, -3.5, 2.4, Math.PI / 2); riel(-1.5, 4, 2.2); riel(5, 3.5, 2.2); riel(-6, 4, 2.2);
+
+/* ---------- Luces ---------- */
+scene.add(new THREE.HemisphereLight('#ffffff', '#b9c3cf', .95));
+scene.add(new THREE.AmbientLight('#ffffff', .2));
+function foco(x, z, tx, ty, tz, intensidad = 30, sombra = false) {
+  const l = new THREE.SpotLight('#fff3ea', intensidad, 12, .62, .55, 1.6);
+  l.position.set(x, SALA.h - .25, z); l.target.position.set(tx, ty, tz);
+  if (sombra) { l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -.0004; }
+  scene.add(l); scene.add(l.target); return l;
+}
+
+/* ---------- Carteles (cédulas de estación) ---------- */
+function cartelPie(num, texto, x, z, ry = 0, ancho = 1.15) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  caja(.32, .04, .32, ORO, 0, .02, 0, g);
+  cil(.018, .018, 1.05, ORO, 0, .55, 0, g, 8);
+  const lineas = texto.split('\n');
+  const alto = lineas.length > 1 ? .4 : .26;
+  const tex = lienzo(1024, Math.round(1024 * alto / ancho), (c, w, h) => {
+    c.fillStyle = '#fff'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#d9d9d9'; c.lineWidth = 10; c.strokeRect(5, 5, w - 10, h - 10);
+    c.textBaseline = 'middle';
+    c.font = '800 120px Figtree, sans-serif'; c.fillStyle = ROSA; c.fillText(num, 54, h / 2);
+    c.fillStyle = '#1d1a1c'; c.font = `700 ${lineas.length > 1 ? 92 : 104}px Figtree, sans-serif`;
+    lineas.forEach((l, i) => c.fillText(l, 170, h / 2 + (i - (lineas.length - 1) / 2) * 104));
+  });
+  const placa = caja(ancho, alto, .04, [BLANCO, BLANCO, BLANCO, BLANCO, mat('#fff', { map: tex }), BLANCO], 0, 1.12, 0, g);
+  placa.rotation.x = -.12;
+  obstaculo(x, z, .4, .4);
+  return g;
+}
+
+/* ---------- Atril / pantalla interactiva ---------- */
+function atril(titulo, sub, x, z, ry, accion, etiqueta, numCartel) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  caja(.42, .03, .42, ORO, 0, .015, 0, g);
+  caja(.3, 1.02, .22, BLANCO, 0, .54, 0, g);
+  const tex = lienzo(1024, 680, (c, w, h) => {
+    c.fillStyle = '#eef0f3'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#1d1a1c'; c.textAlign = 'center';
+    c.font = 'italic 800 104px Figtree, sans-serif';
+    const ys = envolver(c, titulo, w / 2, 210, w - 120, 116);
+    c.fillStyle = '#7a7378'; c.font = '600 60px Figtree, sans-serif'; envolver(c, sub, w / 2, ys + 10, w - 140, 70);
+  });
+  const marco = caja(.82, .56, .05, NEGRO, 0, 1.14, .04, g); marco.rotation.x = -.5;
+  const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(.76, .5), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+  pantalla.position.z = .027; marco.add(pantalla);
+  interactivo(marco, etiqueta, accion);
+  obstaculo(x, z, .5, .5);
+  return g;
+}
+
+/* ---------- Afiches en las paredes ---------- */
+function afiche(tipo, x, y, z, ry, w = 1.05, h = 1.38) {
+  const tex = lienzo(600, 790, (c, W, H) => {
+    if (tipo === 'barbie-rosa') {
+      c.fillStyle = '#f04a8c'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fff'; c.font = 'italic 800 150px "Playfair Display", serif'; c.textAlign = 'center'; c.fillText('Barbie', W / 2, 170);
+      cabeza(c, W / 2, 470, 1, '#f8d55c');
+      c.fillStyle = '#1d1a1c'; for (let i = 0; i < 6; i++) c.fillRect(W / 2 - 150, 640 + i * 26, 300, 13);
+    } else if (tipo === 'barbie-crema') {
+      c.fillStyle = '#fbe9e3'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#e2336f'; c.font = 'italic 800 130px "Playfair Display", serif'; c.textAlign = 'left'; c.fillText('Barbie', 40, 150);
+      c.font = '700 34px Figtree, sans-serif'; c.fillText('teen-age fashion model', 46, 200);
+      cabeza(c, 360, 480, 1.25, '#f6cf6d');
+    } else if (tipo === 'myscene') {
+      c.fillStyle = '#5ec3e6'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#f7e14b'; c.fillRect(0, H * .55, W, H * .45);
+      c.fillStyle = '#e2336f'; c.font = 'italic 800 110px "Playfair Display", serif'; c.textAlign = 'center'; c.fillText('My Scene', W / 2, 140);
+      silueta(c, 200, 700, '#7a3b20', '#9ed46a'); silueta(c, 330, 720, '#f2d36b', '#f080b0'); silueta(c, 450, 700, '#2b1a14', '#6b6bd6');
+    } else if (tipo === '1959') {
+      c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#5ec3e6'; c.font = '800 210px Figtree, sans-serif'; c.textAlign = 'center';
+      c.save(); c.translate(W / 2, H / 2); c.rotate(-Math.PI / 2); c.fillText('1959', 0, 70); c.restore();
+      c.fillStyle = '#1d1a1c'; for (let i = 0; i < 7; i++) c.fillRect(W / 2 - 40, 300 + i * 30, 80, 15);
+      c.fillStyle = '#e2336f'; c.font = 'italic 800 70px "Playfair Display", serif'; c.fillText('Barbie', W / 2, H - 60);
+    } else {
+      c.fillStyle = '#fde3ee'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#e2336f'; c.font = 'italic 800 120px "Playfair Display", serif'; c.textAlign = 'center'; c.fillText('Barbie', W / 2, 160);
+      silueta(c, W / 2, 720, '#f2d36b', '#1d1a1c', 1.5);
+    }
+  });
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g);
+  caja(w + .12, h + .12, .05, ORO, 0, 0, 0, g);
+  caja(w + .02, h + .02, .055, BLANCO, 0, 0, 0, g);
+  const lam = new THREE.Mesh(new THREE.PlaneGeometry(w - .14, h - .14), new THREE.MeshStandardMaterial({ map: tex, roughness: .5 }));
+  lam.position.z = .03; g.add(lam);
+  return g;
+}
+function cabeza(c, x, y, s, pelo) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = pelo; c.beginPath(); c.ellipse(0, -30, 120, 140, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(70, -150, 50, 40, .4, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#fbe0cf'; c.beginPath(); c.ellipse(0, 10, 80, 100, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#1d1a1c'; c.beginPath(); c.ellipse(-30, 0, 9, 13, 0, 0, Math.PI * 2); c.ellipse(30, 0, 9, 13, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#e2336f'; c.beginPath(); c.ellipse(0, 58, 22, 9, 0, 0, Math.PI * 2); c.fill();
+  c.restore();
+}
+function silueta(c, x, y, pelo, ropa, s = 1) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = '#f0c9a8'; c.fillRect(-10, -150, 8, 150); c.fillRect(4, -150, 8, 150);
+  c.fillStyle = ropa; c.beginPath(); c.moveTo(-28, -300); c.lineTo(28, -300); c.lineTo(38, -150); c.lineTo(-38, -150); c.fill();
+  c.fillStyle = '#f0c9a8'; c.beginPath(); c.arc(0, -330, 26, 0, Math.PI * 2); c.fill();
+  c.fillStyle = pelo; c.beginPath(); c.ellipse(0, -330, 32, 36, 0, Math.PI, 0); c.fill(); c.fillRect(-32, -340, 14, 110); c.fillRect(18, -340, 14, 110);
+  c.restore();
+}
+afiche('myscene', -9.96, 2, 4.5, Math.PI / 2);
+afiche('barbie-rosa', -9.96, 2, .2, Math.PI / 2);
+afiche('1959', -9.96, 2, -3.6, Math.PI / 2, .9, 1.25);
+afiche('barbie-crema', -6.2, 2.05, -8.96, 0);
+afiche('barbie-rosa', 9.96, 2.05, -1.2, -Math.PI / 2);
+afiche('otro', 9.96, 2.05, -5.4, -Math.PI / 2);
+afiche('myscene', -4.5, 2, 8.96, Math.PI);
+afiche('barbie-crema', 4.8, 2, 8.96, Math.PI);
+
+/* =========================================================
+   MUÑECAS PROVISIONALES
+   ========================================================= */
+function muñeca(o) {
+  const g = new THREE.Group();
+  const piel = mat(o.piel, { roughness: .5 });
+  const pelo = mat(o.pelo, { roughness: .55 });
+  const top = mat(o.top, { roughness: .6 });
+  const abajo = mat(o.abajo, { roughness: .7 });
+  const zap = mat(o.zapatos, { roughness: .4 });
+  const piernaLarga = .24;
+  for (const s of [-1, 1]) {
+    const p = cil(.017, .013, piernaLarga, o.falda ? piel : abajo, s * .026, .03 + piernaLarga / 2, 0, g, 12);
+    if (o.falda) { /* piernas visibles */ }
+    caja(.03, .05, .055, zap, s * .026, .028, .01, g);
+    if (o.botas) cil(.02, .02, .08, zap, s * .026, .07, 0, g, 10);
+  }
+  // cadera
+  cil(.038, .042, .05, abajo, 0, .29, 0, g, 16);
+  if (o.falda) { const f = cil(.045, .085, .09, mat(o.falda), 0, .265, 0, g, 18); }
+  // torso
+  cil(.034, .03, .11, top, 0, .37, 0, g, 16);
+  if (o.lazo) { const l = new THREE.Mesh(new THREE.TorusKnotGeometry(.018, .008, 30, 6), top); l.position.set(0, .4, .032); g.add(l); }
+  // hombros y brazos
+  for (const s of [-1, 1]) {
+    const b = cil(.011, .009, .17, piel, s * .052, .35, 0, g, 10);
+    b.rotation.z = s * .14;
+  }
+  cil(.011, .012, .03, piel, 0, .44, 0, g, 10);
+  // cabeza
+  const cab = new THREE.Mesh(new THREE.SphereGeometry(.043, 24, 18), piel);
+  cab.scale.set(1, 1.12, 1); cab.position.set(0, .485, 0); cab.castShadow = true; g.add(cab);
+  for (const s of [-1, 1]) {
+    const ojo = new THREE.Mesh(new THREE.SphereGeometry(.0085, 10, 8), mat('#2a1b14', { roughness: .2 }));
+    ojo.position.set(s * .016, .49, .038); ojo.scale.set(1, 1.3, .5); g.add(ojo);
+  }
+  const boca = new THREE.Mesh(new THREE.SphereGeometry(.007, 8, 6), mat('#c94a6b')); boca.position.set(0, .462, .04); boca.scale.set(1.6, .7, .5); g.add(boca);
+  // pelo
+  const casco = new THREE.Mesh(new THREE.SphereGeometry(.048, 24, 16, 0, Math.PI * 2, 0, Math.PI * .55), pelo);
+  casco.position.set(0, .492, -.004); casco.scale.set(1, 1.15, 1.05); g.add(casco);
+  const melena = caja(.1, o.melena || .2, .03, pelo, 0, .49 - (o.melena || .2) / 2 + .02, -.03, g);
+  for (const s of [-1, 1]) caja(.02, (o.melena || .2) * .8, .03, pelo, s * .045, .47 - (o.melena || .2) * .4 + .02, -.005, g);
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  return g;
+}
+const DATOS_MUÑECAS = {
+  nolee: { piel: '#f2d0b4', pelo: '#1a1416', top: '#7d8fd8', abajo: '#1d1a1c', falda: '#1d1a1c', zapatos: '#2a2a2a', melena: .24 },
+  delancey: { piel: '#f3d6be', pelo: '#d8d4cf', top: '#45c6b2', abajo: '#1f2c52', zapatos: '#e57aa6', botas: true, lazo: true, melena: .26 },
+  madison: { piel: '#9a6a4a', pelo: '#4a2a18', top: '#7a9a3a', abajo: '#2b3a6a', zapatos: '#c98a3a', melena: .22 },
+};
+function crearMuñeca(id) { return muñeca(DATOS_MUÑECAS[id]); }
+
+/* ---------- Cargar modelos reales si existen ---------- */
+const cargador = new GLTFLoader();
+function ponerModelo(id, contenedor, alto) {
+  const url = MODELOS[id]; if (!url) return;
+  cargador.load(url, gltf => {
+    const m = gltf.scene; const bb = new THREE.Box3().setFromObject(m); const tam = bb.getSize(new THREE.Vector3());
+    const s = alto / tam.y; m.scale.setScalar(s);
+    const bb2 = new THREE.Box3().setFromObject(m); const c = bb2.getCenter(new THREE.Vector3());
+    m.position.x -= c.x; m.position.z -= c.z; m.position.y -= bb2.min.y;
+    m.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    contenedor.clear(); contenedor.add(m);
+  }, undefined, () => {});
+}
+function nuevoContenido(id, alto) {
+  const cont = new THREE.Group();
+  const prov = id in DATOS_MUÑECAS ? crearMuñeca(id) : objetoProvisional(id);
+  cont.add(prov); ponerModelo(id, cont, alto); return cont;
+}
+
+/* =========================================================
+   ESTACIÓN 1 · EL ESPEJO
+   ========================================================= */
+{
+  const g = new THREE.Group(); g.position.set(-8.2, 0, 4.6); g.rotation.y = Math.PI / 2 - .35; scene.add(g);
+  const W = 1.5, H = 2.2;
+  // marco dorado ornamentado
+  const m = ORO;
+  caja(W + .24, .16, .1, m, 0, .45, 0, g); caja(W + .24, .16, .1, m, 0, .45 + H, 0, g);
+  caja(.16, H + .16, .1, m, -W / 2 - .04, .45 + H / 2, 0, g); caja(.16, H + .16, .1, m, W / 2 + .04, .45 + H / 2, 0, g);
+  for (let i = 0; i < 9; i++) {
+    const t = new THREE.Mesh(new THREE.TorusGeometry(.07 + (i % 3) * .02, .025, 8, 16), m);
+    const ang = i / 8 * Math.PI; t.position.set(Math.cos(ang) * (W / 2 + .05), .45 + H + .05 + Math.sin(ang) * .35, .02); g.add(t);
+  }
+  for (const s of [-1, 1]) {
+    const lazo = new THREE.Mesh(new THREE.TorusGeometry(.13, .04, 10, 20), m); lazo.position.set(s * .15, .45 + H + .5, .03); lazo.scale.set(1.3, .8, 1); g.add(lazo);
+    const pata = caja(.08, .5, .05, m, s * (W / 2 - .05), .25, 0, g);
+  }
+  caja(.14, .14, .08, m, 0, .45 + H + .5, .04, g);
+  const tex = lienzo(800, 1170, (c, w, h) => {
+    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#f3f6fa'); gr.addColorStop(1, '#dfe6ee'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+    c.globalAlpha = .45; c.fillStyle = '#fff'; c.fillRect(220, 260, 360, 520); c.globalAlpha = 1;
+    c.fillStyle = '#5ec3e6'; c.font = '800 150px Figtree'; c.save(); c.translate(430, 560); c.rotate(-Math.PI / 2); c.fillText('1959', -160, 50); c.restore();
+    c.textAlign = 'center'; c.fillStyle = '#f2a9c8'; c.strokeStyle = 'rgba(180,70,120,.35)'; c.lineWidth = 6;
+    c.font = '800 150px Figtree, sans-serif'; c.strokeText('Mi niña', w / 2, 170); c.fillText('Mi niña', w / 2, 170);
+    c.strokeText('interior', w / 2, 330); c.fillText('interior', w / 2, 330);
+    c.font = '800 92px Figtree, sans-serif'; c.strokeText('Bienvenida', w / 2, 900); c.fillText('Bienvenida', w / 2, 900);
+    c.font = '700 56px Figtree, sans-serif'; c.fillText('(clic para comenzar)', w / 2, 1070);
+  });
+  const espejo = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: tex, roughness: .15, metalness: .1 }));
+  espejo.position.set(0, .45 + H / 2, .01); g.add(espejo);
+  interactivo(espejo, 'Mirarte en el espejo · comenzar', abrirEspejo);
+  obstaculo(-8.2, 4.6, 1, 1.8);
+  cartelPie('1', 'EL ESPEJO', -6.9, 3.3, Math.PI / 2 - .5, 1.05);
+  foco(-6.5, 4.6, -8.2, 1.6, 4.6, 26);
+}
+
+/* =========================================================
+   ESTACIÓN 2 · LA VITRINA DEL JUEGO
+   ========================================================= */
+const vitrina = { nolee: null, delancey: null };
+{
+  const x = -5, z = -1.6;
+  const ped = caja(1.4, 1.0, .9, mat('#efe2cf', { roughness: .8 }), x, .5, z);
+  const placa = lienzo(512, 128, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.fillStyle = ROSA; c.font = '800 46px Figtree'; c.fillText('2', 24, 82); c.fillStyle = '#1d1a1c'; c.font = '700 40px Figtree'; c.fillText('LA VITRINA DEL JUEGO', 70, 80); });
+  const pl = new THREE.Mesh(new THREE.PlaneGeometry(.85, .21), new THREE.MeshStandardMaterial({ map: placa })); pl.position.set(x, .24, z + .455); scene.add(pl);
+  const n = nuevoContenido('nolee', .62); n.scale.setScalar(1.6); n.position.set(x + .28, 1.0, z + .05); n.rotation.y = -.2; scene.add(n);
+  const d = nuevoContenido('delancey', .62); d.scale.setScalar(1.6); d.position.set(x - .28, 1.0, z + .05); d.rotation.y = .2; scene.add(d);
+  vitrina.nolee = n; vitrina.delancey = d;
+  interactivo(n, 'Ver Nolee – Shopping Spree', () => abrirFicha('nolee'));
+  interactivo(d, 'Ver Delancey – Miami Getaway (Happenin’ Hotel)', () => abrirFicha('delancey'));
+  obstaculo(x, z, 1.5, 1.0);
+  atril('Compara y descubre', 'Nolee vs. Delancey', x + 1.55, z + .9, -.5, abrirComparar, 'Comparar a Nolee y Delancey');
+  foco(x, z + 1.6, x, 1.2, z, 40, true);
+}
+
+/* =========================================================
+   ESTACIÓN 3 · EL TOCADOR
+   ========================================================= */
+let miDiseño3D = null;
+{
+  const g = new THREE.Group(); g.position.set(5.2, 0, -2.8); scene.add(g);
+  // mueble
+  caja(2.6, .1, .75, ROSA_MUEBLE, 0, .86, 0, g);
+  caja(.7, .82, .65, ROSA_MUEBLE, .85, .41, 0, g);
+  caja(.72, .05, .67, ORO, .85, .04, 0, g);
+  cil(.05, .05, .8, ROSA_MUEBLE, -1.15, .41, .25, g, 12); cil(.05, .05, .8, ROSA_MUEBLE, -1.15, .41, -.25, g, 12);
+  caja(.4, .2, .66, ROSA_MUEBLE, -.25, .68, 0, g);
+  // espejo ovalado
+  const ovalo = new THREE.Mesh(new THREE.TorusGeometry(.5, .05, 12, 48), ORO); ovalo.scale.set(.85, 1.08, 1); ovalo.position.set(.3, 1.55, -.3); g.add(ovalo);
+  const luna = new THREE.Mesh(new THREE.CircleGeometry(.5, 48), mat('#f4f7fb', { metalness: .9, roughness: .08 })); luna.scale.set(.85, 1.08, 1); luna.position.set(.3, 1.55, -.31); g.add(luna);
+  caja(.06, .5, .05, ORO, .3, 1.0, -.3, g);
+  // objetos
+  const bolso = new THREE.Group(); bolso.add(objetoProvisional('bolso')); bolso.position.set(-.6, .91, .05); g.add(bolso); ponerModelo('bolso', bolso, .32);
+  const estuche = new THREE.Group(); estuche.add(objetoProvisional('estuche')); estuche.position.set(1.0, .91, .05); g.add(estuche); ponerModelo('estuche', estuche, .16);
+  const vaso = cil(.05, .04, .12, mat('#f6efe3'), -.05, .97, 0, g, 16);
+  for (let i = 0; i < 4; i++) { const b = cil(.006, .006, .16, mat('#d9b98a'), -.05 + (i - 1.5) * .015, 1.08, 0, g, 6); b.rotation.z = (i - 1.5) * .18; caja(.025, .03, .012, mat('#f2e6d4'), -.05 + (i - 1.5) * .03, 1.17, 0, g); }
+  interactivo(bolso, 'Ver Bolso Barbie (MINISO, 2023)', () => abrirPieza('bolso'));
+  interactivo(estuche, 'Ver Estuche cosmético Barbie (MINISO, 2023)', () => abrirPieza('estuche'));
+  // lugar para "tu diseño"
+  miDiseño3D = new THREE.Mesh(new THREE.PlaneGeometry(.26, .3), new THREE.MeshStandardMaterial({ transparent: true, opacity: 0 }));
+  miDiseño3D.position.set(-.3, 1.08, .12); miDiseño3D.rotation.x = -.2; g.add(miDiseño3D);
+  const cartelito = lienzo(512, 300, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.strokeStyle = '#1d1a1c'; c.lineWidth = 10; c.strokeRect(5, 5, w - 10, h - 10); c.fillStyle = '#1d1a1c'; c.textAlign = 'center'; c.font = '700 40px Figtree'; envolver(c, 'Vota la próxima adquisición en el Cajón', w / 2, 110, w - 60, 50); });
+  const ct = caja(.34, .2, .02, [BLANCO, BLANCO, BLANCO, BLANCO, mat('#fff', { map: cartelito }), BLANCO], -.85, 1.02, -.15, g); ct.rotation.x = -.15;
+  obstaculo(5.2, -2.8, 2.7, .85);
+  atril('Diseña tu estilo Barbie', 'Colores · patrones · accesorios', 3.2, -1.2, .45, abrirDiseño, 'Diseña tu estilo Barbie');
+  cartelPie('3', 'EL TOCADOR', 6.9, -1.4, -.4, 1.05);
+  foco(5.2, -1.2, 5.2, .9, -2.8, 40, true);
+}
+
+/* ---------- Objetos provisionales ---------- */
+function objetoProvisional(id) {
+  const g = new THREE.Group();
+  const logo = (color = ROSA, fondo = null) => lienzo(256, 128, (c, w, h) => { if (fondo) { c.fillStyle = fondo; c.fillRect(0, 0, w, h); } c.fillStyle = color; c.font = 'italic 800 64px "Playfair Display", serif'; c.textAlign = 'center'; c.fillText('Barbie', w / 2, 82); });
+  if (id === 'bolso') {
+    const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(.11, .14, .16, 24, 1, false), NEGRO); cuerpo.scale.set(1, 1, .45); cuerpo.position.y = .08; g.add(cuerpo);
+    const asa = new THREE.Mesh(new THREE.TorusGeometry(.1, .008, 8, 30, Math.PI), NEGRO); asa.position.y = .16; g.add(asa);
+    const l = new THREE.Mesh(new THREE.PlaneGeometry(.12, .06), new THREE.MeshBasicMaterial({ map: logo('#ffffff'), transparent: true })); l.position.set(0, .07, .066); g.add(l);
+  } else if (id === 'estuche') {
+    const chevron = lienzo(512, 256, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.strokeStyle = '#111'; c.lineWidth = 22; for (let y = -20; y < h + 40; y += 48) { c.beginPath(); for (let x = 0; x <= w; x += 40) c.lineTo(x, y + ((x / 40) % 2 ? 22 : 0)); c.stroke(); } c.fillStyle = ROSA; c.fillRect(w / 2 - 40, h / 2 - 22, 80, 44); });
+    const b = caja(.26, .12, .12, mat('#fff', { map: chevron }), 0, .06, 0, g);
+    caja(.26, .012, .02, ORO, 0, .122, 0, g);
+  } else if (id === 'monedero') {
+    caja(.12, .07, .03, mat('#f48cba'), 0, .035, 0, g);
+  } else if (id === 'deportivo') {
+    const c = new THREE.Mesh(new THREE.CapsuleGeometry(.07, .18, 6, 16), NEGRO); c.rotation.z = Math.PI / 2; c.position.y = .08; c.scale.set(1, 1, .8); g.add(c);
+    const asa = new THREE.Mesh(new THREE.TorusGeometry(.08, .008, 8, 30, Math.PI), NEGRO); asa.position.y = .14; g.add(asa);
+    const l = new THREE.Mesh(new THREE.PlaneGeometry(.16, .08), new THREE.MeshBasicMaterial({ map: logo(ROSA), transparent: true })); l.position.set(0, .08, .058); g.add(l);
+  } else if (id === 'vaso-pitillo') {
+    cil(.045, .035, .19, mat('#f58fc0', { transparent: true, opacity: .8, roughness: .1 }), 0, .095, 0, g, 20);
+    cil(.05, .05, .02, mat('#f7a6cc'), 0, .2, 0, g, 20);
+    cil(.005, .005, .14, mat('#ff66a8'), .01, .27, 0, g, 6);
+  } else if (id === 'vaso') {
+    cil(.055, .045, .17, mat('#e8338a', { roughness: .3 }), 0, .085, 0, g, 20);
+    cil(.058, .058, .03, mat('#e8338a', { roughness: .3 }), 0, .185, 0, g, 20);
+    const l = new THREE.Mesh(new THREE.PlaneGeometry(.08, .04), new THREE.MeshBasicMaterial({ map: logo('#ffffff'), transparent: true })); l.position.set(0, .09, .052); g.add(l);
+  } else if (id === 'kennedy') {
+    const piel = mat('#f6d9c4', { roughness: .5 }); const pelo = mat('#f4dc8a', { roughness: .55 });
+    const busto = new THREE.Mesh(new THREE.SphereGeometry(.1, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('#ffffff')); busto.scale.set(1.3, .6, .8); g.add(busto);
+    cil(.02, .025, .06, piel, 0, .08, 0, g, 12);
+    const cab = new THREE.Mesh(new THREE.SphereGeometry(.07, 24, 16), piel); cab.scale.set(1, 1.15, 1); cab.position.y = .17; g.add(cab);
+    for (const s of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(.012, 10, 8), mat('#3a7ac8')); o.position.set(s * .025, .18, .062); o.scale.set(1, 1.3, .5); g.add(o); }
+    const casco = new THREE.Mesh(new THREE.SphereGeometry(.077, 24, 16, 0, Math.PI * 2, 0, Math.PI * .6), pelo); casco.position.y = .185; casco.scale.set(1, 1.15, 1.05); g.add(casco);
+    caja(.16, .2, .04, pelo, 0, .1, -.05, g);
+  } else if (id === 'madison') {
+    return crearMuñeca('madison');
+  }
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  return g;
+}
+
+/* =========================================================
+   ESTACIÓN 4 · EL RINCÓN DE NOLEE (línea de tiempo)
+   ========================================================= */
+const LINEA = [
+  { a: '1959', t: 'Nace Barbie', d: 'Mattel presenta Barbie, una muñeca que se convertiría en una de las marcas más reconocidas de juguetes.' },
+  { a: '2002', t: 'Nace My Scene', d: 'Mattel lanza My Scene, una línea de muñecas enfocada en la moda, el estilismo y la personalidad.' },
+  { a: '2004', t: 'Nolee: Shopping Spree', d: 'Aparece Nolee, la primera pieza de la colección personal y el objeto que inicia esta historia.' },
+  { a: '2005', t: 'Delancey: Miami Getaway (Hotel Room)', d: 'Se incorpora Delancey, una muñeca de la colección My Scene que se conserva intacta. Su estado permite contrastarla con Nolee.' },
+  { a: '2007', t: 'Madison: Juicy Bling Bikini', d: 'Otra pieza My Scene amplía el universo de muñecas de la colección.' },
+  { a: '2008', t: 'Kennedy: Snow Glam Styling Head', d: 'La colección incorpora una pieza relacionada con el estilismo y la moda.' },
+  { a: '2023', t: 'Barbie × MINISO', d: 'Llegan los objetos cotidianos: el estuche cosmético, el bolso y otros accesorios Barbie. El recuerdo de la infancia continúa en objetos que se utilizan diariamente.' },
+];
+const HISTORIA = [
+  'Todo comenzó en la Navidad de 2004, cuando Helen recibió a Nolee por primera vez. Era la primera vez que veía una muñeca My Scene, y el vínculo fue inmediato: en su largo cabello negro, sus ojos expresivos y sus facciones marcadas, Helen encontró un reflejo de sí misma que nunca había sentido con las muñecas convencionales.',
+  'Por esa conexión tan especial, Nolee se convirtió en su compañera inseparable de juegos y en la chispa que dio origen a su colección. Desde aquel regalo nació el sueño de reunir a todas las amigas del universo My Scene, una búsqueda apasionada que continuó incluso después de que Mattel descontinuara la línea en Estados Unidos en 2008 y a nivel global en 2011.',
+];
+{
+  const W = 7.4, H = 3.3, x = -2.2, z = -8.95;
+  const tex = lienzo(2240, 1000, (c, w, h) => {
+    c.fillStyle = '#fbeef4'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = ROSA; c.lineWidth = 30; c.strokeRect(15, 15, w - 30, h - 30);
+    c.lineWidth = 6; c.strokeRect(46, 46, w - 92, h - 92);
+    // barra de tiempo
+    const by = 470, bx0 = 80, bx1 = 1440;
+    c.fillStyle = ROSA; c.beginPath(); c.roundRect(bx0, by - 30, bx1 - bx0, 60, 30); c.fill();
+    const arriba = [0, 2, 4, 6], abajo = [1, 3, 5];
+    const paso = (bx1 - bx0 - 60) / 7;
+    LINEA.forEach((e, i) => {
+      const cx = bx0 + 60 + paso * i + paso / 2 - 30;
+      c.fillStyle = '#fff'; c.font = 'italic 800 40px Figtree'; c.textAlign = 'center'; c.fillText(e.a, cx, by + 14);
+      const arr = arriba.includes(i); const col = arr ? arriba.indexOf(i) : abajo.indexOf(i);
+      const cw = 280, ch = 330; const ccx = arr ? 110 + col * 330 + cw / 2 : 280 + col * 360 + cw / 2;
+      const cy = arr ? 90 : by + 70;
+      c.strokeStyle = ROSA; c.lineWidth = 4; c.beginPath(); c.moveTo(cx, arr ? by - 30 : by + 30); c.lineTo(cx, arr ? by - 52 : by + 52); c.lineTo(ccx, arr ? by - 52 : by + 52); c.lineTo(ccx, arr ? cy + ch : cy); c.stroke();
+      c.fillStyle = '#fff'; c.fillRect(ccx - cw / 2, cy, cw, ch);
+      c.strokeStyle = ROSA; c.lineWidth = 10; c.strokeRect(ccx - cw / 2, cy, cw, ch);
+      // ilustración
+      c.fillStyle = '#fbe4ef'; c.fillRect(ccx - cw / 2 + 20, cy + 20, cw - 40, 170);
+      if (i === 6) { c.fillStyle = '#e8338a'; c.fillRect(ccx - 50, cy + 50, 45, 120); c.fillRect(ccx + 10, cy + 70, 50, 100); }
+      else if (i === 0) { c.fillStyle = '#1d1a1c'; for (let k = 0; k < 6; k++) c.fillRect(ccx - 20, cy + 50 + k * 20, 40, 10); }
+      else silueta(c, ccx, cy + 185, ['#1a1416', '#f2d36b', '#1a1416', '#d8d4cf', '#4a2a18', '#f4dc8a'][i - 1] || '#333', ['#d81b74', '#9ed46a', '#7d8fd8', '#45c6b2', '#f4b42a', '#fff'][i - 1] || '#d81b74', .42);
+      c.fillStyle = '#1d1a1c'; c.textAlign = 'left'; c.font = '800 25px Figtree';
+      let yy = envolver(c, e.t, ccx - cw / 2 + 18, cy + 222, cw - 36, 28);
+      c.font = '500 20px Figtree'; envolver(c, e.d, ccx - cw / 2 + 18, yy + 2, cw - 36, 23);
+    });
+    // historia de Nolee
+    const hx = 1500, hw = 680;
+    c.fillStyle = '#fff'; c.fillRect(hx, 80, hw, h - 160); c.strokeStyle = ROSA; c.lineWidth = 10; c.strokeRect(hx, 80, hw, h - 160);
+    c.fillStyle = '#ececec'; c.fillRect(hx + 120, 110, hw - 240, 330);
+    silueta(c, hx + hw / 2, 430, '#1a1416', '#7d8fd8', .85);
+    c.fillStyle = '#1d1a1c'; c.textAlign = 'center'; c.font = '800 44px "Playfair Display", serif'; c.fillText('La historia de Nolee', hx + hw / 2, 500);
+    c.textAlign = 'left'; c.font = '500 22.5px Figtree'; let yy = 540;
+    for (const p of HISTORIA) yy = envolver(c, p, hx + 30, yy, hw - 60, 27) + 6;
+  });
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: tex, roughness: .7 }));
+  panel.position.set(x, 1.85, z); scene.add(panel);
+  interactivo(panel, 'Explorar la línea de tiempo 1959–2023', abrirLinea);
+  // título con moño
+  const tt = lienzo(1400, 300, (c, w, h) => {
+    c.fillStyle = '#1d1a1c'; c.textAlign = 'center'; c.font = '700 120px "Playfair Display", serif'; c.fillText('MI NIÑA INTERIOR', w / 2, 200);
+    c.fillStyle = ROSA; c.font = 'italic 600 40px "Playfair Display", serif'; c.fillText('Cuando los objetos con los que jugamos se convierten en los que recordamos', w / 2, 270);
+    c.fillStyle = '#1d1a1c'; c.beginPath(); c.ellipse(w / 2 - 40, 50, 40, 22, 0, 0, Math.PI * 2); c.ellipse(w / 2 + 40, 50, 40, 22, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = ROSA; c.beginPath(); c.arc(w / 2, 50, 12, 0, Math.PI * 2); c.fill();
+  });
+  const titulo = new THREE.Mesh(new THREE.PlaneGeometry(3.6, .77), new THREE.MeshBasicMaterial({ map: tt, transparent: true }));
+  titulo.position.set(x, 3.85, z + .01); scene.add(titulo);
+  atril('Construye la colección', 'Ordena los pasos', x, -6.4, 0, abrirOrdenar, 'Construye la colección', true);
+  cartelPie('4', 'EL RINCÓN\nDE NOLEE', x + 1.1, -5.8, -.15, 1.0);
+  foco(x - 2, -5.5, x - 2, 1.8, z, 32); foco(x + 2, -5.5, x + 2, 1.8, z, 32);
+}
+
+/* =========================================================
+   ESTACIÓN 5 · EL CAJÓN Y MURO DE RECUERDOS
+   ========================================================= */
+const PIEZAS_CAJON = [
+  { id: 'monedero', n: 'Monedero rosado', d: 'Accesorio pequeño de uso diario.' },
+  { id: 'bolso', n: 'Bolso Barbie', d: 'MINISO, 2023. Bolso negro de hombro con el logotipo Barbie.' },
+  { id: 'deportivo', n: 'Bolso de viaje Barbie', d: 'Bolso negro con el logotipo en rosado.' },
+  { id: 'vaso-pitillo', n: 'Vaso con pitillo', d: 'Vaso rosado translúcido de uso cotidiano.' },
+  { id: 'vaso', n: 'Vaso térmico Barbie', d: 'Vaso rosado con tapa y logotipo.' },
+  { id: 'kennedy', n: 'Kennedy: Snow Glam Styling Head', d: 'My Scene, 2008. Cabeza para peinar y maquillar: el estilismo como juego.' },
+  { id: 'madison', n: 'Madison: Juicy Bling Bikini', d: 'My Scene, 2007. Amplía el universo de muñecas de la colección.' },
+];
+let cajonAbierto = false; const piezasCajon = [];
+const muro = { grupo: null, notas: [] };
+{
+  const x = 6.4, z = 4.2;
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = -.25; scene.add(g);
+  const B = mat('#f2cfd9', { roughness: .5 });
+  caja(2.2, .08, 1.2, B, 0, .06, 0, g);
+  caja(2.2, .56, .08, B, 0, .32, .56, g); caja(2.2, .56, .08, B, 0, .32, -.56, g);
+  caja(.08, .56, 1.2, B, -1.06, .32, 0, g); caja(.08, .56, 1.2, B, 1.06, .32, 0, g);
+  const fondo = caja(2.04, .02, 1.04, mat('#f7dde6'), 0, .42, 0, g);
+  // filete dorado
+  caja(1.9, .015, .01, ORO, 0, .1, .605, g); caja(1.9, .015, .01, ORO, 0, .5, .605, g);
+  caja(.015, .4, .01, ORO, -.95, .3, .605, g); caja(.015, .4, .01, ORO, .95, .3, .605, g);
+  PIEZAS_CAJON.forEach((p, i) => {
+    const cont = nuevoContenido(p.id, p.id === 'madison' ? .45 : .25);
+    if (p.id === 'madison') cont.scale.setScalar(.85);
+    cont.position.set(-.85 + i * .28, .43, .05); cont.scale.multiplyScalar(.001); cont.visible = false; g.add(cont);
+    cont.userData.escala = p.id === 'madison' ? .85 : 1.15;
+    interactivo(cont, p.n, () => abrirPieza(p.id));
+    piezasCajon.push(cont);
+  });
+  const tapa = new THREE.Mesh(new THREE.BoxGeometry(2.04, .02, 1.04), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }));
+  tapa.position.set(0, .6, 0); g.add(tapa);
+  interactivo(tapa, 'Abrir el cajón', () => {
+    if (!cajonAbierto) {
+      cajonAbierto = true; tapa.userData.inter.etiqueta = 'Ver la colección ampliada (7 piezas)';
+      aviso('Aparecen las siete piezas restantes. Apunta a cada una para conocerla.');
+      piezasCajon.forEach((p, i) => setTimeout(() => { p.visible = true; p.userData.crecer = true; }, i * 180));
+    } else abrirColeccion();
+  });
+  obstaculo(x, z, 2.4, 1.6);
+  foco(x - .8, z + 1, x, .4, z, 36, true);
+
+  // Muro de recuerdos (pared derecha)
+  const mg = new THREE.Group(); mg.position.set(9.94, 0, 4.4); mg.rotation.y = -Math.PI / 2; scene.add(mg); muro.grupo = mg;
+  caja(2.8, 2.2, .03, mat('#fdf1f6'), 0, 1.6, 0, mg);
+  const tonos = ['#f7a8c9', '#f27fb1', '#fbc4db', '#ea5c9b', '#f9d2e3'];
+  for (let i = 0; i < 54; i++) {
+    const n = new THREE.Mesh(new THREE.PlaneGeometry(.22, .22), mat(tonos[i % 5], { side: THREE.DoubleSide }));
+    n.position.set(-1.25 + (i % 9) * .31 + (Math.random() - .5) * .06, .7 + Math.floor(i / 9) * .32 + (Math.random() - .5) * .05, .03 + Math.random() * .01);
+    n.rotation.z = (Math.random() - .5) * .5; mg.add(n);
+  }
+  interactivo(mg, 'Dejar un recuerdo en el muro', abrirMuro);
+  const mt = lienzo(1024, 220, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d9d9d9'; c.lineWidth = 10; c.strokeRect(5, 5, w - 10, h - 10); c.fillStyle = ROSA; c.font = '800 110px Figtree'; c.fillText('5', 40, 150); c.fillStyle = '#1d1a1c'; c.font = '700 74px Figtree'; c.fillText('EL CAJÓN · MURO', 130, 98); c.fillText('DE RECUERDOS', 130, 182); });
+  const mtp = new THREE.Mesh(new THREE.PlaneGeometry(1.4, .3), new THREE.MeshStandardMaterial({ map: mt })); mtp.position.set(0, 2.95, .03); mg.add(mtp);
+  leer('recuerdos', []).forEach(r => pegarNota(r));
+  atril('Curador por un día', 'Vota la próxima pieza', 4.4, 6.4, .5, abrirCurador, 'Curador por un día');
+  cartelPie('5', 'EL CAJÓN', 4.6, 2.6, -.6, 1.0);
+  foco(8.2, 4.4, 9.9, 1.6, 4.4, 28);
+}
+function pegarNota(r) {
+  const i = muro.notas.length;
+  const tex = lienzo(256, 256, (c, w, h) => { c.fillStyle = '#ffe36e'; c.fillRect(0, 0, w, h); c.fillStyle = '#1d1a1c'; c.font = '600 24px Figtree'; let y = envolver(c, r.t.slice(0, 90), 16, 40, w - 32, 28); if (r.o) { c.fillStyle = ROSA; c.font = 'italic 700 20px Figtree'; c.fillText(r.o.slice(0, 22), 16, Math.min(y + 6, h - 16)); } });
+  const n = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshStandardMaterial({ map: tex }));
+  n.position.set(-1.15 + (i % 8) * .33, 2.45 - Math.floor(i / 8 % 5) * .34, .05 + i * .0005); n.rotation.z = ((i * 37) % 10 - 5) * .03;
+  muro.grupo.add(n); muro.notas.push(n);
+}
+
+/* =========================================================
+   CONTROLES
+   ========================================================= */
+const teclas = {}; let yaw = 0, pitch = 0; let enSala = false; let modalAbierto = false;
+const ESTACIONES = [
+  { n: '1 · El Espejo', s: 'Bienvenida · antes de entrar', p: [-8.2, 4.6], v: [-5.4, 5.6, 1.22] },
+  { n: '2 · La Vitrina del Juego', s: 'Nolee y Delancey · My Scene, 2004–2005', p: [-5, -1.6], v: [-4.7, 0.7, 0.14] },
+  { n: '3 · El Tocador', s: 'Estuche y bolso Barbie · MINISO, 2023', p: [5.2, -2.8], v: [4.6, .8, -0.2] },
+  { n: '4 · El Rincón de Nolee', s: 'Línea de tiempo 1959–2023 · origen de la colección', p: [-2.2, -7.6], v: [-2.2, -3.4, 0] },
+  { n: '5 · El Cajón', s: 'Colección ampliada · muro de recuerdos · votación', p: [6.4, 4.2], v: [3.6, 5.2, -1.23, -.38] },
+];
+let estIdx = -1;
+function irA(i) {
+  estIdx = i; const e = ESTACIONES[i];
+  camera.position.set(e.v[0], ALTURA_OJOS, e.v[1]); yaw = e.v[2]; pitch = e.v[3] ?? -.12;
+}
+document.querySelectorAll('[data-ir]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); irA(+b.dataset.ir); canvas.focus(); }));
+
+addEventListener('keydown', e => {
+  if (modalAbierto) { if (e.key === 'Escape') cerrarModal(); return; }
+  if (!enSala) return;
+  if (e.key === 'Tab') { e.preventDefault(); irA((estIdx + 1) % ESTACIONES.length); return; }
+  if (e.key === 'e' || e.key === 'E') { interactuar(); return; }
+  teclas[e.code] = true;
+});
+addEventListener('keyup', e => { teclas[e.code] = false; });
+addEventListener('blur', () => { for (const k in teclas) teclas[k] = false; });
+
+// Ratón: pointer lock en escritorio
+let bloqueado = false;
+document.addEventListener('pointerlockchange', () => { bloqueado = document.pointerLockElement === canvas; });
+document.addEventListener('mousemove', e => {
+  if (!bloqueado || modalAbierto) return;
+  yaw -= e.movementX * .0022; pitch -= e.movementY * .0022; pitch = Math.max(-1.3, Math.min(1.3, pitch));
+});
+// Arrastrar para mirar (sin pointer lock / táctil)
+let arrastre = null, movido = false;
+canvas.addEventListener('pointerdown', e => {
+  if (!enSala || modalAbierto) return;
+  if (e.pointerType === 'mouse' && !esTactil) {
+    if (!bloqueado) { try { canvas.requestPointerLock(); } catch (er) {} if (document.pointerLockElement !== canvas) arrastre = { x: e.clientX, y: e.clientY, id: e.pointerId }; movido = false; return; }
+    interactuar(); return;
+  }
+  arrastre = { x: e.clientX, y: e.clientY, id: e.pointerId, x0: e.clientX, y0: e.clientY }; movido = false;
+});
+canvas.addEventListener('pointermove', e => {
+  if (!arrastre || arrastre.id !== e.pointerId) { if (!bloqueado) apuntarCon(e.clientX, e.clientY); return; }
+  const dx = e.clientX - arrastre.x, dy = e.clientY - arrastre.y;
+  if (Math.abs(e.clientX - (arrastre.x0 ?? arrastre.x)) + Math.abs(e.clientY - (arrastre.y0 ?? arrastre.y)) > 8) movido = true;
+  yaw -= dx * .005; pitch -= dy * .005; pitch = Math.max(-1.3, Math.min(1.3, pitch));
+  arrastre.x = e.clientX; arrastre.y = e.clientY;
+});
+canvas.addEventListener('pointerup', e => {
+  if (arrastre && arrastre.id === e.pointerId) {
+    if (!movido && !bloqueado) { apuntarCon(e.clientX, e.clientY); interactuar(); }
+    arrastre = null;
+  }
+});
+
+// Joystick táctil
+const joy = document.getElementById('joy'); const joyP = joy.querySelector('i'); let joyV = { x: 0, y: 0 }, joyId = null;
+joy.addEventListener('pointerdown', e => { joyId = e.pointerId; joy.setPointerCapture(e.pointerId); moverJoy(e); e.stopPropagation(); });
+joy.addEventListener('pointermove', e => { if (e.pointerId === joyId) moverJoy(e); });
+const soltarJoy = e => { if (e.pointerId === joyId) { joyId = null; joyV = { x: 0, y: 0 }; joyP.style.transform = ''; } };
+joy.addEventListener('pointerup', soltarJoy); joy.addEventListener('pointercancel', soltarJoy);
+function moverJoy(e) {
+  const r = joy.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const m = Math.hypot(dx, dy), max = r.width / 2 - 14; if (m > max) { dx *= max / m; dy *= max / m; }
+  joyV = { x: dx / max, y: dy / max }; joyP.style.transform = `translate(${dx}px,${dy}px)`;
+}
+
+/* ---------- Apuntar e interactuar ---------- */
+const ray = new THREE.Raycaster(); ray.far = 4.2;
+let apuntado = null; let puntero = null;
+const elAviso = document.getElementById('aviso'), elMira = document.getElementById('mira');
+function apuntarCon(x, y) { puntero = { x: (x / innerWidth) * 2 - 1, y: -(y / innerHeight) * 2 + 1 }; }
+function buscarInteractivo(o) { while (o) { if (o.userData.inter && o.visible) return o; o = o.parent; } return null; }
+function actualizarApuntado() {
+  const p = (bloqueado || !puntero || esTactil) ? { x: 0, y: 0 } : puntero;
+  ray.setFromCamera(p, camera);
+  const hits = ray.intersectObjects(interactivos, true);
+  let hallado = null;
+  for (const h of hits) { let o = h.object, vis = true; for (let q = o; q; q = q.parent) if (!q.visible) vis = false; if (!vis) continue; hallado = buscarInteractivo(h.object); if (hallado) break; }
+  apuntado = hallado;
+  if (apuntado && !modalAbierto) { elAviso.innerHTML = `<b>${esTactil ? 'Toca' : 'Clic / E'}</b>· ${apuntado.userData.inter.etiqueta}`; elAviso.hidden = false; elMira.classList.add('activa'); canvas.style.cursor = bloqueado ? '' : 'pointer'; }
+  else { elAviso.hidden = true; elMira.classList.remove('activa'); canvas.style.cursor = bloqueado ? '' : 'grab'; }
+}
+function interactuar() {
+  actualizarApuntado();
+  if (apuntado) apuntado.userData.inter.accion();
+}
+
+/* ---------- Bucle ---------- */
+const reloj = new THREE.Clock(); const elEst = document.getElementById('estacion');
+let ultimaEst = null;
+function moverJugador(dt) {
+  let f = 0, s = 0;
+  if (teclas.KeyW || teclas.ArrowUp) f += 1; if (teclas.KeyS || teclas.ArrowDown) f -= 1;
+  if (teclas.KeyD || teclas.ArrowRight) s += 1; if (teclas.KeyA || teclas.ArrowLeft) s -= 1;
+  f -= joyV.y; s += joyV.x;
+  if (!f && !s) return;
+  const vel = (teclas.ShiftLeft || teclas.ShiftRight ? 4.2 : 2.3) * dt;
+  const m = Math.hypot(f, s); if (m > 1) { f /= m; s /= m; }
+  const dx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) * vel, dz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) * vel;
+  const R = .3;
+  const libre = (x, z) => x > -SALA.x + R && x < SALA.x - R && z > -SALA.z + R && z < SALA.z - R && !obstaculos.some(o => x > o.x0 - R && x < o.x1 + R && z > o.z0 - R && z < o.z1 + R);
+  const p = camera.position;
+  if (libre(p.x + dx, p.z)) p.x += dx;
+  if (libre(p.x, p.z + dz)) p.z += dz;
+}
+function bucle() {
+  const dt = Math.min(reloj.getDelta(), .05);
+  if (enSala && !modalAbierto) moverJugador(dt);
+  camera.rotation.set(pitch, yaw, 0);
+  piezasCajon.forEach(p => { if (p.userData.crecer) { const obj = p.userData.escala; const s = p.scale.x + (obj - p.scale.x) * Math.min(1, dt * 6); p.scale.setScalar(s); if (Math.abs(s - obj) < .002) { p.scale.setScalar(obj); p.userData.crecer = false; } } });
+  if (enSala) {
+    actualizarApuntado();
+    let mejor = null, dm = 4.6;
+    ESTACIONES.forEach((e, i) => { const d = Math.hypot(camera.position.x - e.p[0], camera.position.z - e.p[1]); if (d < dm) { dm = d; mejor = i; } });
+    if (mejor !== ultimaEst) {
+      ultimaEst = mejor;
+      if (mejor === null) elEst.hidden = true;
+      else { elEst.hidden = false; elEst.querySelector('b').textContent = ESTACIONES[mejor].n; elEst.querySelector('span').textContent = ESTACIONES[mejor].s; estIdx = mejor; }
+    }
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(bucle);
+}
+requestAnimationFrame(bucle);
+
+/* ---------- Entrada ---------- */
+if (esTactil) document.getElementById('ayuda-portada').textContent = 'Usa el control de la izquierda para caminar y arrastra para mirar. Toca los objetos para interactuar.';
+document.getElementById('entrar').addEventListener('click', () => {
+  document.getElementById('portada').hidden = true; enSala = true;
+  ['estacion', 'mira', 'barra'].forEach(id => document.getElementById(id).hidden = false);
+  if (!esTactil) { document.getElementById('ayuda').hidden = false; try { canvas.requestPointerLock(); } catch (e) {} }
+  else document.getElementById('joy').hidden = false;
+  elEst.hidden = true; canvas.focus();
+});
+
+/* =========================================================
+   MODALES
+   ========================================================= */
+const velo = document.getElementById('velo');
+let alCerrar = null;
+function abrirModal(html, montar, chico = false) {
+  modalAbierto = true; if (document.pointerLockElement) document.exitPointerLock();
+  for (const k in teclas) teclas[k] = false;
+  velo.innerHTML = `<div class="modal${chico ? ' chico' : ''}" role="dialog" aria-modal="true"><button class="cerrar" aria-label="Cerrar">X</button>${html}</div>`;
+  velo.hidden = false; elAviso.hidden = true;
+  velo.querySelector('.cerrar').addEventListener('click', cerrarModal);
+  alCerrar = null; if (montar) alCerrar = montar(velo.querySelector('.modal')) || null;
+}
+function cerrarModal() {
+  if (alCerrar) alCerrar(); alCerrar = null;
+  velo.hidden = true; velo.innerHTML = ''; modalAbierto = false;
+  if (!esTactil && enSala) { try { canvas.requestPointerLock(); } catch (e) {} }
+  canvas.focus();
+}
+velo.addEventListener('pointerdown', e => { if (e.target === velo) cerrarModal(); });
+let toastT;
+function aviso(t) { const el = document.getElementById('toast'); el.textContent = t; el.hidden = false; el.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { el.style.opacity = 0; setTimeout(() => el.hidden = true, 300); }, 4200); }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* ---------- Visor 3D para fichas ---------- */
+function visor(contenedor, objeto, opciones = {}) {
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+  contenedor.appendChild(r.domElement);
+  const s = new THREE.Scene(); s.add(new THREE.HemisphereLight('#fff', '#f3d6e3', 2.2));
+  const dl = new THREE.DirectionalLight('#fff', 1.6); dl.position.set(1, 2, 2); s.add(dl);
+  s.add(objeto);
+  const bb = new THREE.Box3().setFromObject(objeto); const c = bb.getCenter(new THREE.Vector3()); const tam = bb.getSize(new THREE.Vector3());
+  const cam = new THREE.PerspectiveCamera(32, 1, .01, 20);
+  const dist = Math.max(tam.y, tam.x) * 2.1;
+  cam.position.set(c.x, c.y, c.z + dist);
+  const ctl = new OrbitControls(cam, r.domElement); ctl.target.copy(c); ctl.enableDamping = true; ctl.minDistance = dist * .2; ctl.maxDistance = dist * 2;
+  ctl.autoRotate = !!opciones.girar; ctl.autoRotateSpeed = 1.2; ctl.enablePan = false;
+  let anim = null, vivo = true;
+  const tam0 = () => { const w = contenedor.clientWidth, h = contenedor.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+  tam0(); const ro = new ResizeObserver(tam0); ro.observe(contenedor);
+  (function f() { if (!vivo) return; if (anim) { anim.t += .06; const k = Math.min(1, anim.t); cam.position.lerpVectors(anim.p0, anim.p1, k); ctl.target.lerpVectors(anim.t0, anim.t1, k); if (k >= 1) anim = null; } ctl.update(); r.render(s, cam); requestAnimationFrame(f); })();
+  return {
+    enfocar(fy, fd) { const t1 = new THREE.Vector3(c.x, bb.min.y + tam.y * fy, c.z); const dir = cam.position.clone().sub(ctl.target).normalize(); anim = { t: 0, p0: cam.position.clone(), p1: t1.clone().add(dir.multiplyScalar(dist * fd)), t0: ctl.target.clone(), t1 }; },
+    cerrar() { vivo = false; ro.disconnect(); ctl.dispose(); r.dispose(); r.forceContextLoss(); }
+  };
+}
+
+/* ---------- 1 · Espejo ---------- */
+function abrirEspejo() {
+  abrirModal(`
+    <h2>Mi niña interior</h2>
+    <p class="sub">Cuando los objetos con los que jugamos se convierten en los que recordamos.</p>
+    <p class="nota" style="font-style:italic">Antes de entrar…</p>
+    <p class="pregunta-grande">¿Cuál fue el primer objeto que quisiste conservar?</p>
+    <textarea id="resp" rows="3" placeholder="Escribe tu respuesta (opcional)…"></textarea>
+    <p class="nota">Este museo es una habitación: una vitrina de juego, un tocador, un rincón de recuerdos y un cajón. Puedes empezar por donde quieras; los números sugieren un orden.</p>
+    <div class="fila fin"><button class="btn" id="comenzar">Comenzar</button></div>`, m => {
+    const t = m.querySelector('#resp'); t.value = leer('primerObjeto', '');
+    m.querySelector('#comenzar').addEventListener('click', () => {
+      guardar('primerObjeto', t.value.trim()); cerrarModal();
+      aviso(t.value.trim() ? `Guardamos tu respuesta: “${t.value.trim().slice(0, 40)}”. Sigue hacia la Vitrina del Juego.` : 'Sigue hacia la Vitrina del Juego (2).');
+    });
+  });
+}
+
+/* ---------- 2 · Fichas de las muñecas ---------- */
+const FICHAS = {
+  nolee: {
+    titulo: 'Nolee – Shopping Spree', pieza: 'Pieza 1 · Origen de la colección',
+    tec: [['Tipo', 'Muñeca de colección / moda'], ['Fabricante', 'Mattel, Inc. (línea My Scene)'], ['Año', '2004'], ['Materiales', 'Plástico, vinilo y textiles'], ['Dimensiones', 'Aprox. 29 × 8 × 5 cm'], ['Procedencia', 'No indicado']],
+    papel: 'Origen. Es el primer objeto de la colección y muestra las huellas del juego constante.',
+    desc: 'Nolee llegó en la Navidad de 2004 y fue la compañera inseparable de juegos. Su cabello, su ropa y sus articulaciones guardan las marcas del uso: no se conservó para mirarla, se conservó porque se quiso.',
+    cedula: 'Esta muñeca no está intacta, está vivida. Cada marca es un recuerdo del juego.',
+    det: { estado: 'Estado de conservación. Muestra marcas de uso: el desgaste también es parte de su historia.', rostro: 'Rostro y cabello. Cabello largo y negro, ojos expresivos y facciones marcadas: el reflejo que Helen encontró en ella.', vestuario: 'Vestuario. Línea Shopping Spree, 2004.' },
+  },
+  delancey: {
+    titulo: 'Delancey – Miami Getaway (Happenin’ Hotel)', pieza: 'Pieza 2 · Contrapunto',
+    tec: [['Tipo', 'Muñeca de colección / moda'], ['Fabricante', 'Mattel, Inc. (línea My Scene)'], ['Año', '2005'], ['Materiales', 'Plástico, vinilo y textiles'], ['Dimensiones', 'Aprox. 29 × 8 × 5 cm'], ['Procedencia', 'China']],
+    papel: 'Contrapunto. Se conserva intacta, en contraste con el uso visible de Nolee.',
+    desc: 'Esta muñeca se presenta como contrapunto de la primera: su estado de conservación permite observar cómo dos objetos similares pueden guardar historias distintas. Una habla del juego constante; la otra, del cuidado y la permanencia.',
+    cedula: 'Esta muñeca se guardó intacta. Es la otra manera de querer un objeto: cuidarlo para que no cambie.',
+    det: { estado: 'Estado de conservación. Se conserva intacta: coleccionar también es un acto de cuidado.', rostro: 'Rostro y cabello. Compárala con Nolee: dos muñecas de la misma línea, dos historias distintas.', vestuario: 'Vestuario. Línea Miami Getaway (Happenin’ Hotel), 2005.' },
+  },
+};
+function abrirFicha(id) {
+  const f = FICHAS[id];
+  abrirModal(`
+    <h2>${f.titulo}</h2><p class="sub" style="text-transform:uppercase;letter-spacing:.04em;font-size:11px">${f.pieza}</p>
+    <div class="ficha">
+      <div>
+        <div class="visor" id="v"></div>
+        <p class="visor-nota">Arrastra para girar 360° · rueda del ratón o pellizca para acercar</p>
+        <p class="etq" style="margin-top:0;color:var(--tinta);text-transform:none;letter-spacing:0;font-size:12.5px">Acércate a los detalles:</p>
+        <div class="detalles">
+          <button data-d="estado">Estado de conservación</button><button data-d="rostro">Rostro y cabello</button><button data-d="vestuario">Vestuario</button><button data-d="todo" class="neg">Vista completa</button>
+        </div>
+        <p class="det-txt" id="dt"></p>
+      </div>
+      <div>
+        <p class="etq" style="margin-top:0">Ficha técnica</p>
+        <dl class="tec">${f.tec.map(([k, v]) => `<div><dt>${k}:</dt><dd>${v}</dd></div>`).join('')}</dl>
+        <p class="parr" style="margin-top:10px"><b style="color:var(--rosa)">Papel en la historia:</b> ${f.papel}</p>
+        <p class="etq">Descripción para el museo</p>
+        <p class="parr">${f.desc}</p>
+        <div class="cedula"><p class="etq">Cédula</p><q>${f.cedula}</q></div>
+        <p class="nota" style="font-style:italic;margin-top:8px">Los datos que las fuentes no entregan se mantienen como «No indicado».</p>
+      </div>
+    </div>`, m => {
+    const obj = nuevoContenido(id, .62);
+    const v = visor(m.querySelector('#v'), obj, { girar: true });
+    const dt = m.querySelector('#dt');
+    m.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => {
+      m.querySelectorAll('[data-d]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      const d = b.dataset.d;
+      if (d === 'rostro') v.enfocar(.85, .35); else if (d === 'vestuario') v.enfocar(.6, .55); else if (d === 'estado') v.enfocar(.5, .8); else v.enfocar(.5, 1);
+      const txt = d === 'todo' ? '' : f.det[d]; const [a, ...r] = txt.split('. ');
+      dt.innerHTML = txt ? `<b>${a}.</b> ${r.join('. ')}` : '';
+    }));
+    return () => v.cerrar();
+  });
+}
+
+/* ---------- 2 · Compara y descubre ---------- */
+const QUIZ = [
+  { p: '¿Cuál de las dos muestra <b>marcas de uso</b>?', r: 'A', ok: 'Sí. Nolee (Muñeca A) fue la compañera de juegos: su desgaste cuenta esa historia.', no: 'Mira de cerca el cabello y la ropa: la Muñeca A (Nolee) es la que se jugó todos los días.' },
+  { p: '¿Cuál se <b>conservó intacta</b>?', r: 'B', ok: 'Exacto. Delancey (Muñeca B) se guardó para que no cambiara.', no: 'Es la Muñeca B (Delancey): se conserva como llegó, sin huellas de juego.' },
+  { p: '¿Cuál <b>llegó primero</b> a la colección?', r: 'A', ok: 'Correcto. Nolee llegó en la Navidad de 2004 y dio origen a todo.', no: 'Nolee (Muñeca A) llegó primero, en 2004. Delancey llegó en 2005.' },
+];
+function abrirComparar() {
+  abrirModal(`
+    <h2>Compara y descubre</h2><p class="sub">¿Qué cambia entre una muñeca muy jugada y una intacta?</p>
+    <div class="duo"><div><div class="visor" id="va"></div><b>Muñeca A</b></div><div><div class="visor" id="vb"></div><b>Muñeca B</b></div></div>
+    <div id="q"></div>`, m => {
+    const va = visor(m.querySelector('#va'), nuevoContenido('nolee', .62));
+    const vb = visor(m.querySelector('#vb'), nuevoContenido('delancey', .62));
+    let i = 0, aciertos = 0; const q = m.querySelector('#q');
+    const pintar = () => {
+      if (i >= QUIZ.length) {
+        q.innerHTML = `<div class="res ok"><b>${aciertos} de ${QUIZ.length}.</b> Dos muñecas de la misma línea, dos maneras de querer un objeto: una habla del juego constante; la otra, del cuidado y la permanencia.</div><div class="fila" style="margin-top:12px"><button class="btn sec" id="otra">Repetir</button></div>`;
+        q.querySelector('#otra').onclick = () => { i = 0; aciertos = 0; pintar(); }; return;
+      }
+      const it = QUIZ[i];
+      q.innerHTML = `<p class="quiz-p">${i + 1}. ${it.p}</p><div class="duo"><button class="btn full" data-r="A">Muñeca A</button><button class="btn full" data-r="B">Muñeca B</button></div><div id="fb"></div>`;
+      q.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+        const bien = b.dataset.r === it.r; if (bien) aciertos++;
+        q.querySelectorAll('[data-r]').forEach(x => x.disabled = true);
+        q.querySelector('#fb').innerHTML = `<div class="res ${bien ? 'ok' : 'no'}">${bien ? it.ok : it.no}</div><div class="fila fin" style="margin-top:10px"><button class="btn neg" id="sig">${i + 1 < QUIZ.length ? 'Siguiente' : 'Ver resultado'}</button></div>`;
+        q.querySelector('#sig').onclick = () => { i++; pintar(); };
+      });
+    };
+    pintar();
+    return () => { va.cerrar(); vb.cerrar(); };
+  });
+}
+
+/* ---------- 3 · Diseña tu estilo Barbie ---------- */
+const COLORES = { 'Rosa': '#e8338a', 'Rosa pastel': '#f7b6d2', 'Negro': '#161416', 'Blanco': '#ffffff', 'Dorado': '#c9a14a' };
+function svgDiseño(d) {
+  const c = COLORES[d.color], pc = COLORES[d.pcolor];
+  let patron = '';
+  if (d.patron === 'Zigzag') patron = `<pattern id="pt" width="40" height="28" patternUnits="userSpaceOnUse"><path d="M0 8 L10 18 L20 8 L30 18 L40 8" stroke="${pc}" stroke-width="7" fill="none"/></pattern>`;
+  if (d.patron === 'Lunares') patron = `<pattern id="pt" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="8" cy="8" r="5" fill="${pc}"/><circle cx="23" cy="23" r="5" fill="${pc}"/></pattern>`;
+  if (d.patron === 'Rayas') patron = `<pattern id="pt" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="9" fill="${pc}"/></pattern>`;
+  if (d.patron === 'Cuadros') patron = `<pattern id="pt" width="30" height="30" patternUnits="userSpaceOnUse"><rect width="15" height="15" fill="${pc}"/><rect x="15" y="15" width="15" height="15" fill="${pc}"/></pattern>`;
+  const forma = d.objeto === 'Bolso'
+    ? `<path d="M70 110 Q70 70 140 70 Q210 70 210 110" stroke="#c9a14a" stroke-width="12" fill="none"/><rect x="40" y="100" width="200" height="170" rx="46" fill="${c}"/>${patron ? `<rect x="40" y="100" width="200" height="170" rx="46" fill="url(#pt)"/>` : ''}<rect x="40" y="100" width="200" height="170" rx="46" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="3"/>`
+    : `<rect x="30" y="120" width="220" height="130" rx="22" fill="${c}"/>${patron ? `<rect x="30" y="120" width="220" height="130" rx="22" fill="url(#pt)"/>` : ''}<rect x="30" y="118" width="220" height="12" rx="6" fill="#c9a14a"/><rect x="30" y="120" width="220" height="130" rx="22" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="3"/>`;
+  const cy = d.objeto === 'Bolso' ? 190 : 190;
+  let acc = '';
+  if (d.acc === 'Moño') acc = `<g transform="translate(140 ${cy - 50})"><path d="M0 0 C-14 -20 -40 -20 -40 0 C-40 20 -14 20 0 0 Z M0 0 C14 -20 40 -20 40 0 C40 20 14 20 0 0Z" fill="#1d1a1c"/><circle r="7" fill="#e8338a"/></g>`;
+  if (d.acc === 'Corazón') acc = `<path transform="translate(140 ${cy})" d="M0 22 C-40 -6 -24 -34 0 -16 C24 -34 40 -6 0 22Z" fill="#e8338a" stroke="#fff" stroke-width="4"/>`;
+  if (d.acc === 'Estrella') acc = `<path transform="translate(140 ${cy})" d="M0 -28 L8 -9 L28 -9 L12 4 L18 24 L0 12 L-18 24 L-12 4 L-28 -9 L-8 -9Z" fill="#c9a14a" stroke="#fff" stroke-width="3"/>`;
+  if (d.acc === 'Logotipo') acc = `<text x="140" y="${cy + 16}" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-weight="800" font-size="46" fill="#e8338a" stroke="#fff" stroke-width="1.5">Barbie</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 300"><defs>${patron}</defs>${forma}${acc}</svg>`;
+}
+function textoDiseño(d) {
+  const ref = d.objeto === 'Bolso' ? 'el Bolso Barbie (2023)' : 'el Estuche cosmético (2023)';
+  const rompe = ['Negro', 'Blanco', 'Dorado'].includes(d.color) || ['Negro', 'Blanco'].includes(d.pcolor);
+  return `<b>Tu diseño dialoga con ${ref}.</b> ${d.patron !== 'Liso' ? `Su ${d.patron.toLowerCase()} ` : 'Su superficie lisa '}${rompe ? 'rompe el predominio del rosado' : 'mantiene el universo rosado de la marca'}${d.acc === 'Logotipo' ? ' y lleva la marca al uso cotidiano' : d.acc !== 'Ninguno' ? ` y suma un ${d.acc.toLowerCase()} como sello personal` : ''}.`;
+}
+function abrirDiseño() {
+  const d = leer('diseño', { objeto: 'Bolso', color: 'Negro', patron: 'Zigzag', pcolor: 'Blanco', acc: 'Logotipo' });
+  const grupo = (titulo, clave, ops, puntos, dos) => `<p class="etq">${titulo}</p><div class="opc${dos ? ' dos' : ''}">${ops.map(o => `<button data-k="${clave}" data-v="${o}" aria-pressed="${d[clave] === o}">${puntos ? `<span class="punto" style="background:${COLORES[o]}"></span>` : ''}${o}</button>`).join('')}</div>`;
+  abrirModal(`
+    <h2>Diseña tu estilo Barbie</h2><p class="sub">Combina colores, patrones y accesorios inspirados en la colección.</p>
+    <div class="disenio">
+      <div class="lienzo" id="lz"></div>
+      <div>
+        ${grupo('Objeto', 'objeto', ['Bolso', 'Estuche'], false, true)}
+        ${grupo('Color principal', 'color', Object.keys(COLORES), true)}
+        ${grupo('Patrón', 'patron', ['Liso', 'Zigzag', 'Lunares', 'Rayas', 'Cuadros'])}
+        ${grupo('Color del patrón', 'pcolor', Object.keys(COLORES), true)}
+        ${grupo('Accesorio', 'acc', ['Ninguno', 'Moño', 'Corazón', 'Estrella', 'Logotipo'])}
+        <p class="det-txt" id="txt"></p>
+        <button class="btn full" id="guardar" style="margin-top:10px">Guardar mi diseño</button>
+      </div>
+    </div>`, m => {
+    const pintar = () => { m.querySelector('#lz').innerHTML = svgDiseño(d); m.querySelector('#txt').innerHTML = textoDiseño(d); };
+    m.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+      d[b.dataset.k] = b.dataset.v;
+      m.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', x === b));
+      pintar();
+    }));
+    pintar();
+    m.querySelector('#guardar').addEventListener('click', () => { guardar('diseño', d); ponerDiseñoEnTocador(d); cerrarModal(); aviso('Tu diseño quedó sobre el tocador.'); });
+  });
+}
+function ponerDiseñoEnTocador(d) {
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = 280; c.height = 300; c.getContext('2d').drawImage(img, 0, 0);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    miDiseño3D.material.map = t; miDiseño3D.material.opacity = 1; miDiseño3D.material.needsUpdate = true;
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgDiseño(d));
+}
+{ const d = leer('diseño', null); if (d) ponerDiseñoEnTocador(d); }
+
+/* ---------- Fichas de otras piezas ---------- */
+const OTRAS = {
+  bolso: { t: 'Bolso Barbie', s: 'Barbie × MINISO · 2023', d: 'Bolso negro de hombro con el logotipo Barbie. Con los objetos MINISO, el recuerdo de la infancia continúa en objetos que se utilizan diariamente.' },
+  estuche: { t: 'Estuche cosmético Barbie', s: 'Barbie × MINISO · 2023', d: 'Estuche con zigzag blanco y negro. Rompe el predominio del rosado y lleva la marca al uso cotidiano.' },
+};
+function abrirPieza(id) {
+  const p = OTRAS[id] || (() => { const q = PIEZAS_CAJON.find(x => x.id === id); return { t: q.n, s: 'El Cajón · colección ampliada', d: q.d }; })();
+  abrirModal(`<h2>${p.t}</h2><p class="sub">${p.s}</p><div class="ficha"><div><div class="visor" id="v"></div><p class="visor-nota">Arrastra para girar · acerca con la rueda</p></div><div><p class="parr">${p.d}</p><p class="nota" style="font-style:italic;margin-top:10px">Los datos que las fuentes no entregan se mantienen como «No indicado».</p></div></div>`, m => {
+    const v = visor(m.querySelector('#v'), nuevoContenido(id, .3), { girar: true }); return () => v.cerrar();
+  });
+}
+
+/* ---------- 4 · Línea de tiempo ---------- */
+function abrirLinea() {
+  abrirModal(`
+    <h2>Línea de tiempo · 1959–2023</h2><p class="sub">El Rincón de Nolee · Selecciona una fecha</p>
+    <div class="tabs" role="tablist">${LINEA.map((e, i) => `<button role="tab" data-i="${i}" aria-selected="${i === 0}">${e.a}</button>`).join('')}<button role="tab" data-i="h" aria-selected="false">Historia de Nolee</button></div>
+    <div class="tab-cuerpo" id="tc"></div>`, m => {
+    const tc = m.querySelector('#tc');
+    const ver = i => {
+      m.querySelectorAll('[data-i]').forEach(b => b.setAttribute('aria-selected', b.dataset.i == i));
+      tc.innerHTML = i === 'h' ? `<h3 style="margin-top:0">La historia de Nolee</h3>${HISTORIA.map(p => `<p class="parr" style="margin-bottom:10px">${p}</p>`).join('')}` : `<div class="anio">${LINEA[i].a}</div><h3>${LINEA[i].t}</h3><p class="parr">${LINEA[i].d}</p>`;
+    };
+    m.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => ver(b.dataset.i === 'h' ? 'h' : +b.dataset.i)));
+    ver(0);
+  });
+}
+
+/* ---------- 4 · Construye la colección ---------- */
+const PASOS = [
+  { n: 'Objeto', e: 'Todo empieza con un objeto: una muñeca, un bolso, un vaso.' },
+  { n: 'Adquisición', e: 'El objeto llega a tus manos: un regalo, una compra, una donación.' },
+  { n: 'Criterio', e: 'Decides qué te importa reunir: las amigas del universo My Scene.' },
+  { n: 'Selección', e: 'Con ese criterio eliges qué entra y qué no.' },
+  { n: 'Relación', e: 'Las piezas empiezan a hablar entre sí: Nolee y Delancey, la infancia y lo cotidiano.' },
+  { n: 'Colección', e: 'Un conjunto de objetos elegidos y relacionados, con una historia que los une.' },
+];
+const PISTAS = ['Empieza por el principio: ¿qué hay antes que todo lo demás?', '¿Cómo llega ese objeto a ti?', 'Antes de elegir, ¿qué necesitas definir?', 'Ya tienes un criterio. ¿Qué haces con él?', '¿Qué pasa cuando las piezas se juntan?', '¿Qué nace al final?'];
+function abrirOrdenar() {
+  abrirModal(`
+    <h2>Construye la colección</h2><p class="sub">¿Qué tiene que pasar para que un grupo de objetos sea una colección? Toca los pasos en orden.</p>
+    <div class="casillas" id="cs">${PASOS.map((_, i) => `<div class="casilla">${i + 1}<br>?</div>`).join('')}</div>
+    <p id="pista" style="margin:14px 0">${PISTAS[0]}</p>
+    <p class="etq">Pasos desordenados</p>
+    <div class="pasos" id="ps"></div>
+    <div id="fin"></div>`, m => {
+    const desorden = ['Adquisición', 'Objeto', 'Selección', 'Criterio', 'Relación', 'Colección'];
+    let k = 0; const ps = m.querySelector('#ps');
+    ps.innerHTML = desorden.map(n => `<button data-n="${n}">${n}</button>`).join('');
+    ps.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.n === PASOS[k].n) {
+        const c = m.querySelectorAll('.casilla')[k]; c.classList.add('llena'); c.innerHTML = `${PASOS[k].n}<small>${k + 1}</small>`; b.disabled = true; k++;
+        m.querySelector('#pista').innerHTML = k < PASOS.length ? `<b>${PASOS[k - 1].n}:</b> ${PASOS[k - 1].e}<br><span class="nota">${PISTAS[k]}</span>` : `<b>${PASOS[k - 1].n}:</b> ${PASOS[k - 1].e}`;
+        if (k === PASOS.length) m.querySelector('#fin').innerHTML = `<div class="res ok">¡Lo lograste! Así nació esta colección: de Nolee, un regalo de Navidad, a un conjunto de piezas que cuentan una infancia.</div>`;
+      } else { b.classList.remove('sacude'); void b.offsetWidth; b.classList.add('sacude'); }
+    }));
+  });
+}
+
+/* ---------- 5 · Colección ampliada ---------- */
+function abrirColeccion() {
+  abrirModal(`<h2>El Cajón · colección ampliada</h2><p class="sub">Siete piezas más que continúan la historia fuera de la vitrina.</p>
+    <div class="rejilla">${PIEZAS_CAJON.map((p, i) => `<div class="pieza"><span class="n">Pieza ${i + 3}</span><b>${p.n}</b>${p.d}</div>`).join('')}</div>
+    <div class="fila" style="margin-top:14px"><button class="btn" id="m">Dejar un recuerdo</button><button class="btn neg" id="c">Curador por un día</button></div>`, m => {
+    m.querySelector('#m').onclick = abrirMuro; m.querySelector('#c').onclick = abrirCurador;
+  });
+}
+
+/* ---------- 5 · Muro de recuerdos ---------- */
+function abrirMuro() {
+  const lista = leer('recuerdos', []);
+  abrirModal(`
+    <h2>Muro de recuerdos</h2><p class="sub">Escribe un recuerdo de infancia asociado a un objeto.</p>
+    <p class="etq">Tu recuerdo</p><textarea id="r" rows="3" maxlength="200" placeholder="Por ejemplo: la muñeca que dormía conmigo, el estuche que llevaba al colegio…"></textarea>
+    <p class="etq">¿A qué objeto está ligado? (opcional)</p><input type="text" id="o" maxlength="40" placeholder="Nombre del objeto">
+    <p class="nota">Tu recuerdo quedará visible en el muro para otras personas que visiten la exposición en este equipo.</p>
+    <button class="btn full" id="dejar">Dejar recuerdo</button>
+    ${lista.length ? `<p class="etq" style="margin-top:18px">Recuerdos en el muro</p><div class="recuerdos-lista">${lista.slice().reverse().map(r => `<div class="postit">${esc(r.t)}${r.o ? `<i>${esc(r.o)}</i>` : ''}</div>`).join('')}</div>` : ''}`, m => {
+    m.querySelector('#dejar').addEventListener('click', () => {
+      const t = m.querySelector('#r').value.trim(); if (!t) { m.querySelector('#r').focus(); return; }
+      const r = { t, o: m.querySelector('#o').value.trim() }; const l = leer('recuerdos', []); l.push(r); guardar('recuerdos', l); pegarNota(r);
+      cerrarModal(); aviso('Tu recuerdo ya está en el muro.');
+    });
+  }, true);
+}
+
+/* ---------- 5 · Curador por un día ---------- */
+const OPC_VOTO = ['Un accesorio original de muñeca My Scene (años 2000)', 'Una prenda u outfit original de My Scene (años 2000)', 'Un complemento original de Barbie de los años 2000', 'Otra muñeca de la línea My Scene'];
+function abrirCurador() {
+  let sel = null;
+  abrirModal(`
+    <h2>Curador por un día</h2><p class="sub">¿Qué pieza debería sumar la colección y qué vacío cubriría?</p>
+    <div id="cuerpo">
+    <p class="parr" style="margin-bottom:10px">Hoy falta un objeto complementario directamente ligado a las muñecas. Elige la próxima adquisición:</p>
+    <div class="votos">${OPC_VOTO.map((o, i) => `<button data-i="${i}" aria-pressed="false">${o}</button>`).join('')}</div>
+    <p class="etq">¿Qué vacío cubre? Justifica tu voto en pocas líneas (opcional)</p>
+    <textarea id="j" rows="2" placeholder="Sin esta pieza, a la colección le faltaría…"></textarea>
+    <p class="nota">Modalidad: compra (para buscar una pieza exacta) o donación (para recibir un objeto conservado por otra persona con su propia historia).</p>
+    <div style="display:grid;gap:8px;margin-top:10px"><button class="btn full" id="votar">Registrar mi voto</button><button class="btn neg full" id="ver" style="padding:9px">Ver resultados sin votar</button></div>
+    </div>`, m => {
+    m.querySelectorAll('.votos button').forEach(b => b.addEventListener('click', () => { sel = +b.dataset.i; m.querySelectorAll('.votos button').forEach(x => x.setAttribute('aria-pressed', x === b)); }));
+    const resultados = (mio) => {
+      const v = leer('votos', [0, 0, 0, 0]); const tot = v.reduce((a, b) => a + b, 0) || 1;
+      m.querySelector('#cuerpo').innerHTML = `${mio != null ? `<div class="res ok" style="margin-bottom:12px">Gracias, curadora o curador. Tu voto quedó registrado.</div>` : ''}<p class="etq">Resultados en este equipo</p>${OPC_VOTO.map((o, i) => `<div class="barra-r"><div class="t"><span>${o}</span><span>${v[i]}</span></div><div class="b"><i style="width:${v[i] / tot * 100}%"></i></div></div>`).join('')}
+      ${leer('justificaciones', []).slice(-4).reverse().map(j => `<div class="postit" style="margin-top:8px;transform:none">${esc(j)}</div>`).join('')}`;
+    };
+    m.querySelector('#votar').addEventListener('click', () => {
+      if (sel == null) { aviso('Elige una pieza antes de votar.'); return; }
+      const v = leer('votos', [0, 0, 0, 0]); v[sel]++; guardar('votos', v);
+      const j = m.querySelector('#j').value.trim(); if (j) { const l = leer('justificaciones', []); l.push(j); guardar('justificaciones', l); }
+      resultados(sel);
+    });
+    m.querySelector('#ver').addEventListener('click', () => resultados(null));
+  }, true);
+}
+</script>
+</body>
+</html>
