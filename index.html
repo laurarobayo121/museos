@@ -286,9 +286,9 @@ const LUGARES = {
      objetos:["virgen"]},
   D:{nombre:"Llegaron de Alemania", eje:"Decorativo-global", nivel:"General", color:"#2d6a4a",
      objetivo:"Mostrar la dimensión decorativa y global de la Navidad y comparar tres piezas de una misma serie.",
-     temas:"Wilhelm Füchtner y Seiffen, Erzgebirge (hacia 1870–1872); figuras de rey, soldado y tambor; madera policromada; serie y variación.",
+     temas:"Wilhelm Füchtner y Seiffen, Erzgebirge (hacia 1870–1872); cascanueces rey, soldado y blanco; madera policromada; serie y variación.",
      donde:"Aquí la Navidad deja lo religioso y se vuelve adorno. Estos tres cascanueces de madera remiten a una tradición iniciada hacia 1870 por Wilhelm Füchtner en Seiffen, Alemania, y hoy decoran casas colombianas en diciembre.",
-     aprender:"Que tres piezas casi iguales también forman un grupo: comparten material, técnica y forma, y solo cambia el atuendo. Rey, soldado y tambor muestran cómo una serie se reconoce por lo que repite y por lo que varía.",
+     aprender:"Que tres piezas casi iguales también forman un grupo: comparten material, técnica y forma, y solo cambia el atuendo. El rey, el soldado y el blanco muestran cómo una serie se reconoce por lo que repite y por lo que varía.",
      encontrar:"Los tres cascanueces en vitrina, una cédula por pieza y una pantalla con sus modelos 3D para girarlos y acercarlos sin manipular las piezas reales.",
      mediacion:{t:"Pregunta gatillo", x:"¿Qué hace un soldadito de madera de tradición alemana en la misma repisa que la Patrona de Colombia?"},
      objetos:["rey","soldado","tambor"]},
@@ -351,9 +351,9 @@ const OBJETOS = {
     fuente:"Registro fotográfico propio (sin catálogo). Origen: Festivos.com.co, «Virgen de Chiquinquirá»; El Colombiano, «Patrona de Colombia».",
     conservacion:"No indicado.", etiqueta:"Virgen de Chiquinquirá Firenzi",
     alt:"Modelo 3D aproximado de una figura de la Virgen con corona y manto que sostiene al Niño en brazos, sobre una base con una etiqueta."},
-  rey:casc("rey",4,"Cascanueces rey","vestido de rey","Su atuendo de rey, distinto al uniforme de los otros dos cascanueces.","el cascanueces soldado y el cascanueces tambor"),
-  soldado:casc("soldado",5,"Cascanueces soldado","con uniforme de soldado","Su uniforme de soldado, que lo diferencia del rey y del tambor.","el cascanueces rey y el cascanueces tambor"),
-  tambor:casc("tambor",6,"Cascanueces tambor","con uniforme de tambor","Su uniforme de tambor, distinto al del rey y al del soldado.","el cascanueces rey y el cascanueces soldado"),
+  rey:casc("rey",4,"Cascanueces rey","vestido de rey","Su atuendo de rey, distinto al uniforme de los otros dos cascanueces.","el cascanueces soldado y el cascanueces blanco"),
+  soldado:casc("soldado",5,"Cascanueces soldado","con uniforme de soldado","Su uniforme de soldado, que lo diferencia del rey y del blanco.","el cascanueces rey y el cascanueces blanco"),
+  tambor:casc("tambor",6,"Cascanueces blanco","con uniforme blanco","Su uniforme blanco, distinto al del rey y al del soldado.","el cascanueces rey y el cascanueces soldado"),
   adquisicion:{id:"adquisicion", num:7, lugar:"E", propuesta:true, titulo:"La pieza de tu familia", tipo:"Adquisición propuesta: Reyes Magos o pesebre (por definir)",
     autor:"Artesano de Boyacá o Nariño (por definir).", fecha:"Por definir.",
     material:"Un material distinto a los ya presentes: cerámica, tela o madera tallada", tecnica:"Hecha a mano (cerámica o talla en madera)",
@@ -406,7 +406,7 @@ const PARADAS = {
   B2:{lugar:"B", tit:"Sagrada Familia", pos:[2.1,2.3], mira:[1.6,1.15,0.6], abrir:()=>abrirObjeto("sagrada")},
   C1:{lugar:"C", tit:"Virgen de Chiquinquirá", pos:[-6.9,-0.6], mira:[-8.9,1.2,-1.4], abrir:()=>abrirObjeto("virgen")},
   C2:{lugar:"C", tit:"Mapa y línea de tiempo de orígenes", pos:[-7.0,1.95], mira:[-10,1.6,1.95], abrir:()=>abrirMapa()},
-  D:{lugar:"D", tit:"Cascanueces rey, soldado y tambor", pos:[6.5,-0.6], mira:[8.8,1.2,-0.6], abrir:()=>abrirComparar()},
+  D:{lugar:"D", tit:"Cascanueces rey, soldado y blanco", pos:[6.5,-0.6], mira:[8.8,1.2,-0.6], abrir:()=>abrirComparar()},
   E1:{lugar:"E", tit:"La pieza de tu familia: el pedestal vacío", pos:[0,-4.0], mira:[0,1.2,-6.7], abrir:()=>abrirObjeto("adquisicion")},
   E2:{lugar:"E", tit:"Actividad de criterio y ficha de salida", pos:[3.4,-4.5], mira:[4.0,1.25,-6.6], abrir:()=>abrirActividad()}
 };
@@ -537,12 +537,6 @@ function cascanueces(tipo){
     pon(g,G.cil(.092,.092,.018,24),oro(),0,.805,0);
     pon(g,G.cil(.03,.03,.008,16),oro(),0,.88,.09,Math.PI/2);
     pon(g,G.esf(.022,10),mat(0xb3262d,.6),0,1.0,0);
-    const tam=new THREE.Group(); tam.position.set(.07,.43,.12); tam.rotation.set(.35,0,.15); g.add(tam);
-    pon(tam,G.cil(.072,.072,.075,24),mat(0xb3262d,.5));
-    pon(tam,G.cil(.075,.075,.012,24),oro(),0,.038,0); pon(tam,G.cil(.075,.075,.012,24),oro(),0,-.038,0);
-    pon(tam,G.cil(.07,.07,.002,24),blanco,0,.045,0);
-    pon(g,G.cil(.005,.005,.16,6),mat(0x7a5230,.6),.0,.47,.17,.2,0,.9);
-    pon(g,G.cil(.005,.005,.16,6),mat(0x7a5230,.6),.11,.47,.17,.2,0,-.9);
   }
   return g;
 }
@@ -1121,7 +1115,7 @@ function texPlano(){
     g.font=`600 22px ${FT}`; g.textAlign="left"; g.textBaseline="alphabetic";
     let y=800; const L=Object.entries(LUGARES);
     L.forEach(([k,l],i)=>{ const x=50+(i%2)*420; const yy=y+Math.floor(i/2)*40; g.fillStyle=l.color; g.fillRect(x,yy-18,22,22); g.fillStyle="#2b2019"; g.fillText(`${k} · ${l.nombre}`,x+34,yy); });
-    g.fillStyle="#6b5a4c"; g.font=`500 20px ${FT}`; g.fillText("Usted está aquí: entrada",50,y+132);
+    g.fillStyle="#6b5a4c"; g.font=`500 20px ${FT}`; g.fillText("Estás aquí: entrada",50,y+132);
   });
 }
 function texPantalla(titulo,sub,color,dibujo){
@@ -1172,20 +1166,20 @@ function montaje(){
       g.restore();
       g.textAlign="left"; g.textBaseline="alphabetic";
       g.fillStyle="#c42828"; g.beginPath(); g.arc(78,872,13,0,Math.PI*2); g.fill();
-      g.fillStyle="#2b2019"; g.font=`700 28px ${FT}`; g.fillText("Usted está aquí",104,882);
-      g.fillStyle="#6b5a4c"; g.font=`500 22px ${FT}`; g.fillText("El plano está orientado como usted ve la sala: el fondo (E) queda arriba.",60,930);
+      g.fillStyle="#2b2019"; g.font=`700 28px ${FT}`; g.fillText("Estás aquí",104,882);
+      g.fillStyle="#6b5a4c"; g.font=`500 22px ${FT}`; g.fillText("El plano está orientado como ves la sala: el fondo (E) queda arriba.",60,930);
     });
     const tRec=tex(1000,1000,(g,w,h)=>{
       g.fillStyle="#f7f0e3"; g.fillRect(0,0,w,h);
       g.fillStyle="#9a7a4a"; g.font=`700 24px ${FT}`; g.fillText("LUGARES Y RECORRIDOS",50,62);
-      g.fillStyle="#2b2019"; g.font=`700 56px ${FD}`; g.fillText("Elija su recorrido",50,122);
+      g.fillStyle="#2b2019"; g.font=`700 56px ${FD}`; g.fillText("Elige tu recorrido",50,122);
       let y=200;
       Object.entries(LUGARES).forEach(([k,l])=>{ g.fillStyle=l.color; g.beginPath(); g.arc(70,y-10,20,0,Math.PI*2); g.fill(); g.fillStyle="#fff"; g.font=`700 22px ${FT}`; g.textAlign="center"; g.fillText(k,70,y-2); g.textAlign="left"; g.fillStyle="#2b2019"; g.font=`600 28px ${FT}`; g.fillText(l.nombre,106,y); y+=56; });
       y+=20; g.strokeStyle="#d8c7a6"; g.lineWidth=2; g.beginPath(); g.moveTo(50,y); g.lineTo(w-50,y); g.stroke(); y+=60;
       Object.values(RECORRIDOS).forEach((r,i)=>{ g.fillStyle="#d9a441"; g.beginPath(); g.arc(74,y-12,24,0,Math.PI*2); g.fill(); g.fillStyle="#1c1410"; g.font=`700 26px ${FT}`; g.textAlign="center"; g.fillText(String(i+1),74,y-2); g.textAlign="left";
         g.fillStyle="#2b2019"; g.font=`700 30px ${FT}`; g.fillText(r.nombre,114,y-6);
         g.fillStyle="#6b5a4c"; g.font=`500 26px ${FT}`; g.fillText(r.paradas.map(p=>PARADAS[p].lugar).filter((v,i,a)=>a.indexOf(v)===i).join(" → "),114,y+28); y+=96; });
-      g.fillStyle="#9a7a4a"; g.font=`600 22px ${FT}`; g.fillText("Toque para elegir un recorrido",50,h-40);
+      g.fillStyle="#9a7a4a"; g.font=`600 22px ${FT}`; g.fillText("Toca para elegir un recorrido",50,h-40);
     });
     const pP=pon(tapa,new THREE.PlaneGeometry(.98,.9),new THREE.MeshStandardMaterial({map:tPlano,roughness:.8}),-.5,0,.002);
     const pR=pon(tapa,new THREE.PlaneGeometry(.9,.9),new THREE.MeshStandardMaterial({map:tRec,roughness:.8}),.49,0,.002);
@@ -1226,7 +1220,7 @@ function montaje(){
   for(const [t] of tipos){ const c=conModeloReal(t,cascanueces(t)); c.scale.setScalar(.72); c.position.set(8.8,.93,fotoOrden[t]); c.rotation.y=-Math.PI/2; escena.add(c); tocable(c,()=>abrirObjeto(t),OBJETOS[t].titulo); cedula3D(OBJETOS[t],8.3,.78,fotoOrden[t],-Math.PI/2); }
   tocable(vd,()=>abrirComparar(),"Vitrina de los cascanueces");
   obst(8.8,-.6,.75,2.1);
-  pantallaPared(9.94,1.6,2.05,-Math.PI/2,1.7,1.05,texPantalla("Vista comparada","Rey · soldado · tambor en 3D","#2d6a4a",(g,w)=>{ const cols=["#1f5a3a","#1b2a5c","#eee4cf"]; cols.forEach((c,i)=>{ const x=200+i*250; g.fillStyle=c; g.fillRect(x-40,120,80,150); g.fillStyle="#f0c6a0"; g.fillRect(x-35,70,70,55); g.fillStyle=i===0?"#d4a640":i===1?"#141212":"#f7f3ea"; g.fillRect(x-38,20,76,50); g.fillStyle="#f7f3ea"; g.fillRect(x-35,108,70,16); }); }),()=>abrirComparar(),"Pantalla: vista comparada de los cascanueces");
+  pantallaPared(9.94,1.6,2.05,-Math.PI/2,1.7,1.05,texPantalla("Vista comparada","Rey · soldado · blanco en 3D","#2d6a4a",(g,w)=>{ const cols=["#1f5a3a","#1b2a5c","#eee4cf"]; cols.forEach((c,i)=>{ const x=200+i*250; g.fillStyle=c; g.fillRect(x-40,120,80,150); g.fillStyle="#f0c6a0"; g.fillRect(x-35,70,70,55); g.fillStyle=i===0?"#d4a640":i===1?"#141212":"#f7f3ea"; g.fillRect(x-38,20,76,50); g.fillStyle="#f7f3ea"; g.fillRect(x-35,108,70,16); }); }),()=>abrirComparar(),"Pantalla: vista comparada de los cascanueces");
   luzFoco(7.8,3.6,-.6,8.8,1.2,-.6,30,.42); luzFoco(7.6,3.6,-3.6,9.9,1.7,-3.6,16,.5); luzFoco(7.8,3.6,2.0,9.9,1.6,2.0,8,.55);
 
   /* ---- Lugar E: ¿Qué hace una colección? ---- */
@@ -1334,7 +1328,7 @@ function montaje(){
     credito.position.set(3.25,1.05,zp+.02); escena.add(credito);
     luzFoco(-1.9,3.7,-6.6,-1.9,1.9,-7.95,22,.5); luzFoco(1.9,3.7,-6.6,1.9,1.9,-7.95,22,.5); luzFoco(0,3.7,-6.2,0,3.2,-7.95,14,.45);
   }
-  totem(4.0,-6.6,0,texPantalla("Actividad de criterio","Agrupa los seis objetos · ficha de salida","#6b3b5e",(g,w)=>{ const n=["Pesebre","Sagrada Familia","Virgen","Rey","Soldado","Tambor"]; g.font=`600 26px ${FT}`; n.forEach((t,i)=>{ const x=60+(i%3)*270, y=60+Math.floor(i/3)*90; g.fillStyle="#f7f0e3"; rr(g,x,y,240,64,10); g.fill(); g.fillStyle="#2b2019"; g.fillText(t,x+18,y+42); }); }),()=>abrirActividad(),"Actividad de criterio y ficha de salida",1.1,.68);
+  totem(4.0,-6.6,0,texPantalla("Actividad de criterio","Agrupa los seis objetos · ficha de salida","#6b3b5e",(g,w)=>{ const n=["Pesebre","Sagrada Familia","Virgen","Rey","Soldado","Blanco"]; g.font=`600 26px ${FT}`; n.forEach((t,i)=>{ const x=60+(i%3)*270, y=60+Math.floor(i/3)*90; g.fillStyle="#f7f0e3"; rr(g,x,y,240,64,10); g.fill(); g.fillStyle="#2b2019"; g.fillText(t,x+18,y+42); }); }),()=>abrirActividad(),"Actividad de criterio y ficha de salida",1.1,.68);
   luzFoco(-2.6,3.6,-6.3,-4.3,1.7,-7.95,16,.55); luzFoco(4,3.6,-5.2,4,1.3,-6.6,10,.4);
 
 
@@ -1761,10 +1755,10 @@ function abrirEtiqueta(){
 
 function abrirComparar(){
   const L=LUGARES.D;
-  abrirDialogo({eyebrow:"Lugar D · Pantalla", titulo:"Vista comparada de los tres atuendos", letra:"D", color:L.color, html:`<div class="dos-col">${bloqueVisor("Los tres cascanueces lado a lado: a la izquierda el tambor, de chaqueta clara y gorro alto blanco; en el centro el soldado, de chaqueta azul y gorro negro; a la derecha el rey, de chaqueta verde, capa roja y corona dorada.")}
-  <div class="cedula"><div class="num">Serie y variación</div><h3>Rey, soldado y tambor</h3>
+  abrirDialogo({eyebrow:"Lugar D · Pantalla", titulo:"Vista comparada de los tres atuendos", letra:"D", color:L.color, html:`<div class="dos-col">${bloqueVisor("Los tres cascanueces lado a lado: a la izquierda el blanco, de chaqueta clara y gorro alto blanco; en el centro el soldado, de chaqueta azul y gorro negro; a la derecha el rey, de chaqueta verde, capa roja y corona dorada.")}
+  <div class="cedula"><div class="num">Serie y variación</div><h3>Rey, soldado y blanco</h3>
   <p class="curatorial">${esc(L.aprender)}</p>
-  <dl><dt>Lo que se repite</dt><dd>Material (madera policromada), técnica (elaboración en madera y pintura) y forma de cascanueces.</dd><dt>Lo que cambia</dt><dd>El atuendo: rey, soldado y tambor.</dd><dt>Tradición</dt><dd>Wilhelm Füchtner, Seiffen (Erzgebirge, Alemania), hacia 1870–1872.</dd></dl>
+  <dl><dt>Lo que se repite</dt><dd>Material (madera policromada), técnica (elaboración en madera y pintura) y forma de cascanueces.</dd><dt>Lo que cambia</dt><dd>El atuendo: rey, soldado y blanco.</dd><dt>Tradición</dt><dd>Wilhelm Füchtner, Seiffen (Erzgebirge, Alemania), hacia 1870–1872.</dd></dl>
   <div class="mediacion" style="--acento:${L.color}"><b>${L.mediacion.t}</b>${esc(L.mediacion.x)}</div>
   <div class="piezas-lugar">${["rey","soldado","tambor"].map(t=>`<button class="btn" type="button" data-o="${t}">Cédula: ${OBJETOS[t].titulo}</button>`).join("")}</div></div></div>`});
   const g=new THREE.Group(); [["tambor",-.42],["soldado",0],["rey",.42]].forEach(([t,x])=>{ const c=conModeloReal(t,cascanueces(t)); c.position.x=x; g.add(c); });
@@ -1948,7 +1942,7 @@ function semilla(s){ return ()=>{ s=(s*16807)%2147483647; return (s-1)/214748364
    del pedestal "La pieza de tu familia" y se apaga al alejarse.
    ===================================================================== */
 const musica={ctx:null,master:null,on:true,sig:0,idx:0,
-  BPM:116,
+  BPM:100,
   MEL:[[71,.5],[74,.5],[74,.5],[76,.5],[74,.5],[71,.5],[67,1],[69,.5],[72,.5],[72,.5],[74,.5],[72,.5],[69,.5],[66,1],
        [69,.5],[72,.5],[74,.5],[72,.5],[71,.5],[69,.5],[71,.5],[72,.5],[74,.75],[71,.25],[69,.5],[71,.5],[67,2],
        [72,.5],[76,.5],[76,.5],[79,.5],[76,.5],[72,.5],[72,1],[71,.5],[74,.5],[74,.5],[79,.5],[74,.5],[71,.5],[71,1],
@@ -1959,6 +1953,10 @@ const musica={ctx:null,master:null,on:true,sig:0,idx:0,
   iniciar(){ if(this.ctx) { this.ctx.resume(); return; }
     try{ const C=window.AudioContext||window.webkitAudioContext; if(!C) return; this.ctx=new C(); }catch(e){ return; }
     const c=this.ctx; this.master=c.createGain(); this.master.gain.value=0; this.master.connect(c.destination);
+    // reverberación suave de sala
+    const L=c.sampleRate*2.2, ir=c.createBuffer(2,L,c.sampleRate); for(let ch=0;ch<2;ch++){ const d=ir.getChannelData(ch); for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3); }
+    const rev=c.createConvolver(); rev.buffer=ir; const rg=c.createGain(); rg.gain.value=.35; this.envio=c.createGain(); this.envio.connect(rev); rev.connect(rg); rg.connect(this.master);
+    this.seco=c.createGain(); this.seco.gain.value=.8; this.seco.connect(this.master); this.seco.connect(this.envio);
     const n=c.createBuffer(1,c.sampleRate*.5,c.sampleRate), d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; this.ruido=n;
     this.t0=c.currentTime+.1; this.sig=this.t0; this.compas=0;
     setInterval(()=>this.programar(),100);
@@ -1966,25 +1964,28 @@ const musica={ctx:null,master:null,on:true,sig:0,idx:0,
   nota(t,f,dur,tipo,vol,corte){ const c=this.ctx, o=c.createOscillator(), g=c.createGain(), fl=c.createBiquadFilter();
     o.type=tipo; o.frequency.value=f; fl.type="lowpass"; fl.frequency.setValueAtTime(corte,t); fl.frequency.exponentialRampToValueAtTime(Math.max(300,corte*.25),t+dur);
     g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0008,t+dur);
-    o.connect(fl); fl.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+.05); },
-  flauta(t,f,dur){ const c=this.ctx, o=c.createOscillator(), v=c.createOscillator(), vg=c.createGain(), g=c.createGain();
+    o.connect(fl); fl.connect(g); g.connect(this.seco); o.start(t); o.stop(t+dur+.05); },
+  flauta(t,f,dur,vol=.1){ const c=this.ctx, o=c.createOscillator(), v=c.createOscillator(), vg=c.createGain(), g=c.createGain();
     o.type="triangle"; o.frequency.value=f*2; v.frequency.value=5.2; vg.gain.value=f*2*.006; v.connect(vg); vg.connect(o.frequency);
-    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.11,t+.04); g.gain.setValueAtTime(.1,t+Math.max(.05,dur-.06)); g.gain.linearRampToValueAtTime(0,t+dur);
-    o.connect(g); g.connect(this.master); o.start(t); v.start(t); o.stop(t+dur+.02); v.stop(t+dur+.02); },
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.05); g.gain.setValueAtTime(vol*.85,t+Math.max(.06,dur-.08)); g.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(g); g.connect(this.seco); o.start(t); v.start(t); o.stop(t+dur+.02); v.stop(t+dur+.02); },
+  campana(t,f,vol){ const c=this.ctx; [[1,1],[2.76,.35],[5.4,.12]].forEach(([m,a])=>{ const o=c.createOscillator(), g=c.createGain(); o.type="sine"; o.frequency.value=f*m;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol*a,t+.004); g.gain.exponentialRampToValueAtTime(.0005,t+1.6/m); o.connect(g); g.connect(this.seco); o.start(t); o.stop(t+1.7); }); },
+  tercera(m){ const esc=[55,57,59,60,62,64,66,67,69,71,72,74,76,78,79,81]; const k=esc.indexOf(m); return k>=2? esc[k-2] : m-4; },
   golpe(t,vol,frec,dur,q=1){ const c=this.ctx, s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
     s.buffer=this.ruido; f.type="bandpass"; f.frequency.value=frec; f.Q.value=q;
-    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0008,t+dur); s.connect(f); f.connect(g); g.connect(this.master); s.start(t,Math.random()*.3); s.stop(t+dur+.02); },
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0008,t+dur); s.connect(f); f.connect(g); g.connect(this.seco); s.start(t,Math.random()*.3); s.stop(t+dur+.02); },
   rasgueo(t,acorde,abajo,vol){ const v=this.VOZ[acorde], orden=abajo?v:[...v].reverse(); orden.forEach((n,i)=>this.nota(t+i*.012,this.hz(n),.32,"sawtooth",vol*(1-i*.08),2600)); },
   programar(){ const c=this.ctx; if(!c) return; const neg=60/this.BPM;
     while(this.sig<c.currentTime+.4){
       const t=this.sig, k=this.compas%16, ac=this.ACO[k];
       // tiple: abajo · arriba · abajo · arriba (aguinaldo)
-      this.rasgueo(t,ac,true,.05); this.rasgueo(t+neg*.5,ac,false,.035); this.rasgueo(t+neg,ac,true,.045); this.rasgueo(t+neg*1.75,ac,false,.035);
+      this.rasgueo(t,ac,true,.032); this.rasgueo(t+neg*.5,ac,false,.022); this.rasgueo(t+neg,ac,true,.028); this.rasgueo(t+neg*1.75,ac,false,.022);
       const b=this.BAJO[ac]; this.nota(t,this.hz(b[0]),neg*.9,"triangle",.16,900); this.nota(t+neg,this.hz(b[1]),neg*.9,"triangle",.13,900);
-      for(let i=0;i<4;i++) this.golpe(t+i*neg*.5,i%2?.07:.04,6500,.07,.8);   // maracas
-      this.golpe(t+neg,.06,9000,.18,2.5); this.golpe(t+neg*1.5,.03,9000,.1,2.5); // pandereta
+      for(let i=0;i<4;i++) this.golpe(t+i*neg*.5,i%2?.045:.025,6000,.06,.8);   // maracas
+      this.golpe(t+neg,.035,9000,.2,2.5); // pandereta
       // melodía de este compás
-      let acum=0; while(acum<2-1e-6){ const [m,dur]=this.MEL[this.idx]; this.flauta(t+acum*neg,this.hz(m),dur*neg*.95); acum+=dur; this.idx=(this.idx+1)%this.MEL.length; }
+      let acum=0; while(acum<2-1e-6){ const [m,dur]=this.MEL[this.idx]; const tn=t+acum*neg; this.flauta(tn,this.hz(m),dur*neg*.95,.09); if(this.compas%32>=16) this.flauta(tn,this.hz(this.tercera(m)),dur*neg*.95,.055); if(acum===0) this.campana(tn,this.hz(m+12),.05); acum+=dur; this.idx=(this.idx+1)%this.MEL.length; }
       this.sig+=2*neg; this.compas++;
     }
   },
